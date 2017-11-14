@@ -231,7 +231,7 @@ void mouseMotion(int x, int y) {
  * @param b0    Color Blue
  * @param size  Size
  */
-void trace_point(Point &p, double r0, double g0, double b0, double size) {
+void tracePoint(Point p, double r0, double g0, double b0, double size) {
     glColor3f(r0, g0, b0);    //initialisation de la couleur
     glPointSize(size);    // initialisation de la taille
     glBegin(GL_POINTS);    // on trace un point
@@ -248,7 +248,7 @@ void trace_point(Point &p, double r0, double g0, double b0, double size) {
  * @param blue
  * @param size
  */
-void trace_segment(Point &p1, Point &p2, double red, double green, double blue, double size) {
+void traceSegment(Point p1, Point p2, double red, double green, double blue, double size) {
     glColor3f(red, green, blue);//initialisation de la couleur
     glLineWidth(size); // initialisation de la taille
     glBegin(GL_LINES); // on trace un segment
@@ -270,13 +270,13 @@ void init() {
     o.x = 0., o.y = 0., i.x = 1., i.y = 0., j.x = 0., j.y = 1.;
 
     glNewList(1, GL_COMPILE_AND_EXECUTE); //liste numero 1
-    trace_point(o, 0., 0., 1., 15.);//O
-    trace_point(i, 1., 0., 0., 10.); //I
-    trace_point(j, 0., 0.5, 0., 10.); //J
+    tracePoint(o, 0., 0., 1., 15.);//O
+    tracePoint(i, 1., 0., 0., 10.); //I
+    tracePoint(j, 0., 0.5, 0., 10.); //J
     glEndList();
     glNewList(2, GL_COMPILE_AND_EXECUTE);  //liste numero 2
-    trace_segment(o, i, 1.0, 0.0, 1.0, 2.0); // on trace [OI]
-    trace_segment(o, j, 1.0, 0.50, 0.0, 2.0);// on trace [OJ]
+    traceSegment(o, i, 1.0, 0.0, 1.0, 2.0); // on trace [OI]
+    traceSegment(o, j, 1.0, 0.50, 0.0, 2.0);// on trace [OJ]
     glEndList();
 
     glNewList(4, GL_COMPILE_AND_EXECUTE);  //liste numero 4

@@ -9,11 +9,11 @@
 using namespace std;
 
 typedef double coord_t;
-struct Point {
+typedef struct point {
     coord_t x, y;
-    bool operator<(const Point &p)const {
+    bool operator<(const struct point p)const {
         return x < p.x || (x == p.x && y < p.y);
     }
-};
+} Point;
 
 #endif //SOURCES_POINT_H
