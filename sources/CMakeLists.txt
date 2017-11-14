@@ -9,7 +9,9 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES
         main.cpp
-        )
+        Point.h
+        Algorithm.cpp
+        Algorithm.h)
 
 add_executable(sources ${SOURCE_FILES})
 
