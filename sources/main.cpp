@@ -3,17 +3,11 @@
  *********************************************************/
 
 #include <stdlib.h>
-#include <stdbool.h>
 #include <fstream>
 #include <iostream>
-#include <math.h>
-#include <string.h>
 
 // Inclusion des fichiers d'en-tete Glut
-#include <vector>
 #include <GL/glut.h>
-#include <jpeglib.h>
-#include <jerror.h>
 
 #include "constants.h"
 #include "Point.h"
@@ -28,10 +22,16 @@ int anglex, angley, x, y, xold, yold;
 
 /* Prototype des fonctions pour OpenGL */
 void idle();
+
 void display();//  procedure a modifier en fonction de la scene
-void keyboardInput(unsigned char touche, int x, int y);
+void keyboardInput(unsigned char key, int x, int y);
+
+void special(int key, int x, int y);
+
 void reshape(int x, int y);
+
 void mouseInput(int bouton, int etat, int x, int y);
+
 void mouseMotion(int x, int y);
 
 /****************************************************************
@@ -68,6 +68,7 @@ int main(int argc, char **argv) {
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboardInput);
+    glutSpecialFunc(special);
     glutMouseFunc(mouseInput);
     glutMotionFunc(mouseMotion);
 
@@ -106,9 +107,10 @@ void display() {
     glutSwapBuffers();
 }
 
-void keyboardInput(unsigned char touche, int x, int y) {
-    switch (touche) {
-        case 'q' : /*la touche 'q' permet de quitter le programme */
+void keyboardInput(unsigned char key, int x, int y) {
+    printf("Keyboard input : %d\n", key);
+    switch (key) {
+        case 'q' : /*la key 'q' permet de quitter le programme */
             exit(0);
         case '+' :
             dist += 0.5;
@@ -120,23 +122,28 @@ void keyboardInput(unsigned char touche, int x, int y) {
             Scal = Scal - 0.5;
             glutPostRedisplay();
             break;
-        case '2' :
+    }
+}
+
+void special(int key, int x, int y) {
+    printf("Special Keyboard input : %d\n", key);
+
+    switch (key) {
+        case GLUT_KEY_UP:
             trY -= 0.25;
-            glutPostRedisplay();
             break;
-        case '6' :
-            trX -= 0.25;
-            glutPostRedisplay();
-            break;
-        case '4' :
-            trX += 0.25;
-            glutPostRedisplay();
-            break;
-        case '8' :
+        case GLUT_KEY_DOWN:
             trY += 0.25;
-            glutPostRedisplay();
+            break;
+        case GLUT_KEY_LEFT:
+            trX -= 0.25;
+            break;
+        case GLUT_KEY_RIGHT:
+            trX += 0.25;
             break;
     }
+
+    glutPostRedisplay();
 }
 
 void reshape(int x, int y) {
@@ -229,8 +236,8 @@ void trace_segment(Point &p1, Point &p2, double red, double green, double blue, 
 void init() {
     cout << "\n Start Initialisation" << endl;
 
-    Point o ,i,j;
-    o.x=0.,o.y=0., i.x=1.,i.y=0.,j.x=0.,j.y=1.;
+    Point o, i, j;
+    o.x = 0., o.y = 0., i.x = 1., i.y = 0., j.x = 0., j.y = 1.;
 
     glNewList(1, GL_COMPILE_AND_EXECUTE); //liste numero 1
     trace_point(o, 0., 0., 1., 15.);//O
@@ -238,8 +245,8 @@ void init() {
     trace_point(j, 0., 0.5, 0., 10.); //J
     glEndList();
     glNewList(2, GL_COMPILE_AND_EXECUTE);  //liste numero 2
-    trace_segment(o,i, 1.0, 0.0, 1.0, 2.0); // on trace [OI]
-    trace_segment(o,j, 1.0, 0.50, 0.0, 2.0);// on trace [OJ]
+    trace_segment(o, i, 1.0, 0.0, 1.0, 2.0); // on trace [OI]
+    trace_segment(o, j, 1.0, 0.50, 0.0, 2.0);// on trace [OJ]
     glEndList();
 
     glNewList(4, GL_COMPILE_AND_EXECUTE);  //liste numero 4
