@@ -16,22 +16,54 @@ using namespace std;
 
 double Scal = 36;
 
-double trX = 0.0, trY = 0.0, dist = 0.;//,trZ=0.0
+double trX = 0.0, trY = 0.0, dist = 0.;//,trZ=0.0;
+
 bool leftClicked;
 int anglex, angley, x, y, xold, yold;
 
 /* Prototype des fonctions pour OpenGL */
 void idle();
-
+/**
+ * Display function
+ */
 void display();//  procedure a modifier en fonction de la scene
-void keyboardInput(unsigned char key, int x, int y);
 
+/**
+ * Keyboard inputs triggered function
+ * @param key
+ * @param x
+ * @param y
+ */
+void keyboardInput(unsigned char key, int x, int y);
+/**
+ * Special inputs (extra keyboard, ...) triggered function
+ * @param key
+ * @param x
+ * @param y
+ */
 void special(int key, int x, int y);
 
+/**
+ * Reshape function
+ * @param x
+ * @param y
+ */
 void reshape(int x, int y);
 
+/**
+ * Mouse input triggered function
+ * @param bouton
+ * @param etat
+ * @param x
+ * @param y
+ */
 void mouseInput(int bouton, int etat, int x, int y);
 
+/**
+ * Mouse motion triggered function
+ * @param x
+ * @param y
+ */
 void mouseMotion(int x, int y);
 
 /****************************************************************
@@ -86,14 +118,16 @@ int main(int argc, char **argv) {
 
 // fonction permettant d'afficher les objets en utilisant des listes
 void display() {
-    /* effacement de l'image avec la couleur de fond */
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear display with background color
     glLoadIdentity();
 
     glTranslatef(0.0, 0.0, dist);
-    // Pour la 3D
-    // glRotatef(-angley,1.0,0.0,0.0);
-    //  glRotatef(-anglex,0.0,1.0,0.0);
+    //Pour la 3D
+    /*
+    glRotatef(-angley,1.0,0.0,0.0);
+    glRotatef(-anglex,0.0,1.0,0.0);
+     */
+
     // Pour la 2D
     glRotatef(-anglex + angley, 0.0, 0.0, 1.0);
     glScalef(Scal, Scal, Scal); // diminution de la vue de la scene
@@ -103,8 +137,7 @@ void display() {
     glCallList(1); // appel de la liste numero 1
     glCallList(2);   // appel de la liste numero 2
     glFlush();
-    // On echange les buffers
-    glutSwapBuffers();
+    glutSwapBuffers(); //switch buffers
 }
 
 void keyboardInput(unsigned char key, int x, int y) {
@@ -192,8 +225,7 @@ void mouseMotion(int x, int y) {
 
 /**
  * Tracer un point
- * @param x Coordinate X
- * @param y Coordinate Y
+ * @param p     Point
  * @param r0    Color Red
  * @param g0    Color Green
  * @param b0    Color Blue
@@ -209,10 +241,8 @@ void trace_point(Point &p, double r0, double g0, double b0, double size) {
 
 /**
  * Tracer un Segment
- * @param x0
- * @param y0
- * @param x1
- * @param y1
+ * @param p1
+ * @param p2
  * @param red
  * @param green
  * @param blue
@@ -229,12 +259,12 @@ void trace_segment(Point &p1, Point &p2, double red, double green, double blue, 
 
 /****************************************************************
  **                                                            **
- **                    Affichage de  la scene                  **
+ **               Initialisation de  la scene                  **
  **                                                            **
  ****************************************************************/
 //fonction ou les objets sont a definir
 void init() {
-    cout << "\n Start Initialisation" << endl;
+    cout << "\nStart Init" << endl;
 
     Point o, i, j;
     o.x = 0., o.y = 0., i.x = 1., i.y = 0., j.x = 0., j.y = 1.;
@@ -260,7 +290,7 @@ void init() {
 
     glEndList();
 
-    cout << "\n End of Initialisation" << endl;
+    cout << "\nEnd Init" << endl;
 }
 
 
