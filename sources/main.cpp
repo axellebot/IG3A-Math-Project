@@ -20,17 +20,18 @@ Algorithm currentAlgo;
 
 vector<Point> pointList;
 
-double Scal = 36;
-double trX = 0.0, trY = 0.0, dist = 0.;//,trZ=0.0;
-
-bool leftClicked=false;
+double scale = 30;
 int anglex, angley, x, y, xold, yold;
+double trX = 0.0, trY = 0.0, trZ = 0.0;
 
-void idle();
+bool leftClicked = false;
 
 void addPointsTest();
+
 void addPoint(coord_t x, coord_t y);
+
 void reset();
+
 /**
  * Get Width
  * @return width (in px)
@@ -38,6 +39,7 @@ void reset();
 int getWidth() {
     return glutGet(GLUT_WINDOW_WIDTH);
 }
+
 /**
  * Get Height
  * @return height (in px)
@@ -99,7 +101,6 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear display with background color
     glLoadIdentity();
 
-    glTranslatef(0.0, 0.0, dist);
     //Pour la 3D
     /*
     glRotatef(-angley,1.0,0.0,0.0);
@@ -107,11 +108,11 @@ void display() {
      */
 
     // Pour la 2D
-    glRotatef(-anglex + angley, 0.0, 0.0, 1.0);
-    glScalef(Scal, Scal, Scal); // diminution de la vue de la scene
-    glRotatef(180, 0.0, 1.0, 0.0);
-    glRotatef(180, 1.0, 0.0, 0.0);
-    glTranslatef(-trX, trY, 0.);
+    glRotatef(180, 1.0, 0.0, 0.0); // rotate X axe
+    glRotatef(180, 0.0, 1.0, 0.0); // rotate Y axe
+    glRotatef(-anglex + angley, 0.0, 0.0, 1.0); // rotate Z axe
+    glScalef(scale, scale, scale); // change scale
+    glTranslatef(-trX, trY, trY);//translate
     //Oredered by layers
     //TOP
     glCallList(MMP_LAYER_INDEX_DRAW_POINT);
@@ -139,13 +140,11 @@ void keyboardInput(unsigned char key, int x, int y) {
             glutPostRedisplay();
             break;
         case '+' :
-            dist += 0.5;
-            Scal = Scal + 0.5;
+            scale += 0.5;
             glutPostRedisplay();
             break;
         case '-' :
-            dist -= 0.5;
-            Scal = Scal - 0.5;
+            scale -= 0.5;
             glutPostRedisplay();
             break;
     }
@@ -201,12 +200,13 @@ void reshape(int width, int height) {
  * @param y
  */
 void mouseInput(int button, int state, int x, int y) {
-    cout<<"Mouse Click at "<<x<<';'<<y<<endl;
+    cout << "Mouse Click at " << x << ';' << y << endl;
     /* si on appuie sur le bouton gauche */
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         leftClicked = true; /* le booleen leftClicked passe a 1 (vrai) */
         xold = x; /* on sauvegarde la position de la souris */
         yold = y;
+
         //TODO : Added real coordonates with window coordonate
         addPointsTest(); // test
     }
@@ -240,7 +240,7 @@ void mouseMotion(int x, int y) {
  **                         Affichage                          **
  **                                                            **
  ****************************************************************/
-void refreshLandmarkDisplay(){
+void refreshLandmarkDisplay() {
     Point o, i, j;
     o.x = 0., o.y = 0., i.x = 1., i.y = 0., j.x = 0., j.y = 1.;
 
@@ -256,20 +256,20 @@ void refreshLandmarkDisplay(){
     glEndList();
 }
 
-void refreshPointsDisplay(){
+void refreshPointsDisplay() {
     glNewList(MMP_LAYER_INDEX_DRAW_POINT, GL_COMPILE_AND_EXECUTE); //List for points
-    for(Point p : pointList){
-        drawPoint(p,0,0,0,20);
+    for (Point p : pointList) {
+        drawPoint(p, 0, 0, 0, 20);
     }
     glEndList();
     glutPostRedisplay();
 }
 
-void refreshSegmentsDisplay(){
+void refreshSegmentsDisplay() {
     glNewList(MMP_LAYER_INDEX_DRAW_SEGMENT, GL_COMPILE_AND_EXECUTE); //List for segments
 
     //check if list is filled
-    if(pointList.size()>0) {
+    if (pointList.size() > 0) {
         vector<Point> hullPointList;
         switch (currentAlgo) {
             case MonotoneChain:
@@ -289,13 +289,13 @@ void refreshSegmentsDisplay(){
 //fonction ou les objets sont a definir
 void initDisplay() {
     string TAG = "INIT_DISPLAY";
-    cout << "\n"<<TAG <<" : Start"<< endl;
+    cout << "\n" << TAG << " : Start" << endl;
 
     refreshLandmarkDisplay();
     refreshPointsDisplay();
     refreshSegmentsDisplay();
 
-    cout << "\n"<<TAG <<" : End"<< endl;
+    cout << "\n" << TAG << " : End" << endl;
 }
 
 /****************************************************************
@@ -303,46 +303,48 @@ void initDisplay() {
  **                           Actions                          **
  **                                                            **
  ****************************************************************/
-void addPointsTest(){
+void addPointsTest() {
     addPoint(1, 1);
     addPoint(2, 1);
     addPoint(3, 1);
     addPoint(2, 5);
     addPoint(3, 2);
-    addPoint(6,4);
+    addPoint(6, 4);
     addPoint(2, 6);
     addPoint(-2, -6);
 }
 
-void addPoint(coord_t x,coord_t y){
-    Point p; p.x=x;p.y=y;
+void addPoint(coord_t x, coord_t y) {
+    Point p;
+    p.x = x;
+    p.y = y;
     pointList.push_back(p);
-    cout<<"Added new point at "<<p.x<<';'<<p.y<<endl;
+    cout << "Added new point at " << p.x << ';' << p.y << endl;
     refreshPointsDisplay();
     refreshSegmentsDisplay();
 }
 
-void reset(){
+void reset() {
     string TAG = "RESET";
-    cout << "\n"<<TAG <<": Start"<< endl;
+    cout << "\n" << TAG << ": Start" << endl;
 
     pointList.clear(); //clear point list
     initDisplay();
 
-    cout << "\n"<<TAG <<": end"<< endl;
+    cout << "\n" << TAG << ": End" << endl;
 }
 
 
-int chooseAlgorithm(){
+int chooseAlgorithm() {
     int choix_tmp = 1;
 
     cout << "Choose Algorithms :\n";
     cout << "1 -> MonotonChain\n";
     cout << "answer : ";
     scanf("%d", &choix_tmp);
-    currentAlgo = (Algorithm)choix_tmp;
+    currentAlgo = (Algorithm) choix_tmp;
 
-    if(currentAlgo==0) exit(-1);
+    if (currentAlgo == 0) exit(-1);
 }
 
 /****************************************************************
@@ -351,11 +353,12 @@ int chooseAlgorithm(){
  **                                                            **
  ****************************************************************/
 
-void init(){
+void init() {
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowPosition(0, 0);
     glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     glutCreateWindow(MMP_WINDOW_LABEL);
+
     /* Initialisation d'OpenGL */
     glClearColor(1.0, 1.0, 1.0, 0.0);
     glColor3f(0.0, 0.0, 0.0);
