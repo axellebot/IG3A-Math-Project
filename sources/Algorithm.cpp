@@ -13,24 +13,28 @@ namespace Algorithms{
     vector<Point> MonotoneChain::convexHull(vector<Point> pList){
         long n = pList.size(), k = 0;
         if (n == 1) return pList;
-        vector<Point> H(2*n);
+        vector<Point> hullPointList(2*n);
 
         // Sort points lexicographically
         sort(pList.begin(), pList.end());
 
         // Build lower hull
         for (int i = 0; i < n; ++i) {
-            while (k >= 2 && cross(H[k-2], H[k-1], pList[i]) <= 0) k--;
-            H[k++] = pList[i];
+            while (k >= 2 && cross(hullPointList[k-2], hullPointList[k-1], pList[i]) <= 0){
+                k--;
+            }
+            hullPointList[k++] = pList[i];
         }
 
         // Build upper hull
         for (long i = n-2, t = k+1; i >= 0; i--) {
-            while (k >= t && MonotoneChain::cross(H[k-2], H[k-1], pList[i]) <= 0) k--;
-            H[k++] = pList[i];
+            while (k >= t && MonotoneChain::cross(hullPointList[k-2], hullPointList[k-1], pList[i]) <= 0){
+                k--;
+            }
+            hullPointList[k++] = pList[i];
         }
 
-        H.resize(k-1);
-        return H;
+        hullPointList.resize(k-1);
+        return hullPointList;
     }
 }

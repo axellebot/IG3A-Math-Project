@@ -9,6 +9,11 @@
 #include <vector>
 #include "Point.h"
 
+
+typedef enum{
+    MonotoneChain = 1,
+} Algorithm;
+
 namespace Algorithms {
     // Implementation of Andrew's monotone chain 2D convex hull algorithm.
     class MonotoneChain {

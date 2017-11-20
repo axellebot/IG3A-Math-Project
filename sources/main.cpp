@@ -9,11 +9,14 @@
 #include <GL/glut.h>// Inclusion des fichiers d'en-tete Glut
 #include "constants.h"
 #include "Point.h"
+#include "Algorithm.h"
 
 using namespace std;
 
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 1000;
+
+Algorithm currentAlgo;
 
 vector<Point> pointList;
 
@@ -25,8 +28,23 @@ int anglex, angley, x, y, xold, yold;
 
 void idle();
 
+void addPointsTest();
 void addPoint(coord_t x, coord_t y);
 void reset();
+/**
+ * Get Width
+ * @return width (in px)
+ */
+int getWidth() {
+    return glutGet(GLUT_WINDOW_WIDTH);
+}
+/**
+ * Get Height
+ * @return height (in px)
+ */
+int getHeight() {
+    return glutGet(GLUT_WINDOW_HEIGHT);
+}
 
 /****************************************************************
  **                                                            **
@@ -161,18 +179,18 @@ void special(int key, int x, int y) {
 }
 
 /**
- * Reshape function
- * @param x
- * @param y
+ * Reshape function on window resized
+ * @param width width
+ * @param height height
  */
-void reshape(int x, int y) {
+void reshape(int width, int height) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     //taille de la scene
     double Ortho = -150;
     glOrtho(-Ortho, Ortho, -Ortho, Ortho, -Ortho, Ortho);// fenetre
     glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, x, y);
+    glViewport(0, 0, width, height);
 }
 
 /**
@@ -190,8 +208,7 @@ void mouseInput(int button, int state, int x, int y) {
         xold = x; /* on sauvegarde la position de la souris */
         yold = y;
         //TODO : Added real coordonates with window coordonate
-//        addPoint(1, 1);
-//        addPoint(2, 1);
+        addPointsTest(); // test
     }
     /* si on relache le bouton gauche */
     if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
@@ -250,18 +267,35 @@ void refreshPointsDisplay(){
 
 void refreshSegmentsDisplay(){
     glNewList(MMP_LAYER_INDEX_DRAW_SEGMENT, GL_COMPILE_AND_EXECUTE); //List for segments
+
+    //check if list is filled
+    if(pointList.size()>0) {
+        vector<Point> hullPointList;
+        switch (currentAlgo) {
+            case MonotoneChain:
+                hullPointList = Algorithms::MonotoneChain::convexHull(pointList);
+                break;
+        }
+
+        for (int i = 0; i < hullPointList.size() - 1; i++) {
+            drawSegment(hullPointList.at(i), hullPointList.at(i + 1), 0, 0, 0, 20);
+        }
+        drawSegment(hullPointList.front(), hullPointList.back(), 0, 0, 0, 20);
+    }
+
     glEndList();
 }
 
 //fonction ou les objets sont a definir
 void initDisplay() {
-    cout << "\nStart Init" << endl;
+    string TAG = "INIT_DISPLAY";
+    cout << "\n"<<TAG <<" : Start"<< endl;
 
     refreshLandmarkDisplay();
     refreshPointsDisplay();
     refreshSegmentsDisplay();
 
-    cout << "\nEnd Init" << endl;
+    cout << "\n"<<TAG <<" : End"<< endl;
 }
 
 /****************************************************************
@@ -269,20 +303,46 @@ void initDisplay() {
  **                           Actions                          **
  **                                                            **
  ****************************************************************/
+void addPointsTest(){
+    addPoint(1, 1);
+    addPoint(2, 1);
+    addPoint(3, 1);
+    addPoint(2, 5);
+    addPoint(3, 2);
+    addPoint(6,4);
+    addPoint(2, 6);
+    addPoint(-2, -6);
+}
+
 void addPoint(coord_t x,coord_t y){
     Point p; p.x=x;p.y=y;
     pointList.push_back(p);
     cout<<"Added new point at "<<p.x<<';'<<p.y<<endl;
     refreshPointsDisplay();
+    refreshSegmentsDisplay();
 }
 
 void reset(){
-    cout << "\nStart Reset" << endl;
+    string TAG = "RESET";
+    cout << "\n"<<TAG <<": Start"<< endl;
 
     pointList.clear(); //clear point list
     initDisplay();
 
-    cout << "\nEnd Reset" << endl;
+    cout << "\n"<<TAG <<": end"<< endl;
+}
+
+
+int chooseAlgorithm(){
+    int choix_tmp = 1;
+
+    cout << "Choose Algorithms :\n";
+    cout << "1 -> MonotonChain\n";
+    cout << "answer : ";
+    scanf("%d", &choix_tmp);
+    currentAlgo = (Algorithm)choix_tmp;
+
+    if(currentAlgo==0) exit(-1);
 }
 
 /****************************************************************
@@ -318,7 +378,13 @@ void init(){
     glutMotionFunc(mouseMotion);
 }
 
+
 int main(int argc, char **argv) {
+
+    //choose a algorithm
+    chooseAlgorithm();
+
+
     /* initialisation de glut et creation de la fenetre */
     glutInit(&argc, argv);
 
