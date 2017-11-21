@@ -2,8 +2,8 @@
 // Created by axel on 14/11/17.
 //
 
-#ifndef SOURCES_ALGORITHM_H
-#define SOURCES_ALGORITHM_H
+#ifndef MINIPROJETMATH_ALGORITHM_H
+#define MINIPROJETMATH_ALGORITHM_H
 
 #include <algorithm>
 #include <vector>
@@ -30,4 +30,4 @@ namespace Algorithms {
 }
 
 
-#endif //SOURCES_ALGORITHM_H
+#endif //MINIPROJETMATH_ALGORITHM_H

@@ -1,36 +1,16 @@
-/*********************************************************
- *                    main.cpp                           *
- *********************************************************/
+//
+// Created by axel on 25/10/17.
+//
 
 #include <stdlib.h>
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <GL/glut.h>// Inclusion des fichiers d'en-tete Glut
-#include "constants.h"
-#include "Point.h"
-#include "Algorithm.h"
+
+#include "main.h"
 
 using namespace std;
-
-const int SCREEN_WIDTH = 1000;
-const int SCREEN_HEIGHT = 1000;
-
-Algorithm currentAlgo;
-
-vector<Point> pointList;
-
-double scale = 30;
-int anglex, angley, x, y, xold, yold;
-double trX = 0.0, trY = 0.0, trZ = 0.0;
-
-bool leftClicked = false;
-
-void addPointsTest();
-
-void addPoint(coord_t x, coord_t y);
-
-void reset();
 
 /**
  * Get Width
@@ -50,7 +30,7 @@ int getHeight() {
 
 /****************************************************************
  **                                                            **
- **                           Tracage                          **
+ **                           Drawing                          **
  **                                                            **
  ****************************************************************/
 
@@ -140,11 +120,11 @@ void keyboardInput(unsigned char key, int x, int y) {
             glutPostRedisplay();
             break;
         case '+' :
-            scale += 0.5;
+            zoomIn();
             glutPostRedisplay();
             break;
-        case '-' :
-            scale -= 0.5;
+        case '-':
+            zoomOut();
             glutPostRedisplay();
             break;
     }
@@ -237,7 +217,7 @@ void mouseMotion(int x, int y) {
 
 /****************************************************************
  **                                                            **
- **                         Affichage                          **
+ **                         Display                            **
  **                                                            **
  ****************************************************************/
 void refreshLandmarkDisplay() {
@@ -286,18 +266,6 @@ void refreshSegmentsDisplay() {
     glEndList();
 }
 
-//fonction ou les objets sont a definir
-void initDisplay() {
-    string TAG = "INIT_DISPLAY";
-    cout << "\n" << TAG << " : Start" << endl;
-
-    refreshLandmarkDisplay();
-    refreshPointsDisplay();
-    refreshSegmentsDisplay();
-
-    cout << "\n" << TAG << " : End" << endl;
-}
-
 /****************************************************************
  **                                                            **
  **                           Actions                          **
@@ -334,7 +302,6 @@ void reset() {
     cout << "\n" << TAG << ": End" << endl;
 }
 
-
 int chooseAlgorithm() {
     int choix_tmp = 1;
 
@@ -347,13 +314,36 @@ int chooseAlgorithm() {
     if (currentAlgo == 0) exit(-1);
 }
 
+void zoomIn(){
+    scale+=0.5;
+}
+
+void zoomOut(){
+    if(scale>0)scale-=0.5;
+}
+
 /****************************************************************
  **                                                            **
  **                            Main                            **
  **                                                            **
  ****************************************************************/
 
+//fonction ou les objets sont a definir
+void initDisplay() {
+    string TAG = "INIT_DISPLAY";
+    cout << "\n" << TAG << " : Start" << endl;
+
+    refreshLandmarkDisplay();
+    refreshPointsDisplay();
+    refreshSegmentsDisplay();
+
+    cout << "\n" << TAG << " : End" << endl;
+}
+
 void init() {
+    //choose a algorithm
+    chooseAlgorithm();
+
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowPosition(0, 0);
     glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -381,13 +371,7 @@ void init() {
     glutMotionFunc(mouseMotion);
 }
 
-
 int main(int argc, char **argv) {
-
-    //choose a algorithm
-    chooseAlgorithm();
-
-
     /* initialisation de glut et creation de la fenetre */
     glutInit(&argc, argv);
 
