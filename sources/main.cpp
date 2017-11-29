@@ -73,7 +73,7 @@ void drawSegment(Point p1, Point p2, double red, double green, double blue, doub
  **                  OpenGL overloading                        **
  **                                                            **
  ****************************************************************/
-void idle(){
+void idle() {
     glutPostRedisplay();
 }
 
@@ -135,16 +135,16 @@ void special(int key, int x, int y) {
 
     switch (key) {
         case GLUT_KEY_UP:
-            trY += scale*GAP_MOVING;
+            trY += scale * GAP_MOVING;
             break;
         case GLUT_KEY_DOWN:
-            trY -= scale*GAP_MOVING;
+            trY -= scale * GAP_MOVING;
             break;
         case GLUT_KEY_RIGHT:
-            trX +=scale* GAP_MOVING;
+            trX += scale * GAP_MOVING;
             break;
         case GLUT_KEY_LEFT:
-            trX -= scale*GAP_MOVING;
+            trX -= scale * GAP_MOVING;
             break;
     }
 
@@ -161,7 +161,7 @@ void reshape(int width, int height) {
     glLoadIdentity();
     //taille de la scene
     // help here -> http://www3.ntu.edu.sg/home/ehchua/programming/opengl/cg_introduction.html
-    double ortho = getWidth()/2;
+    double ortho = getWidth() / 2;
     glOrtho(-ortho, ortho, -ortho, ortho, 1, -1);// fenetre
     glMatrixMode(GL_MODELVIEW);
     glViewport(0, 0, getWidth(), getHeight()); //set the viewport
@@ -182,8 +182,15 @@ void mouseInput(int button, int state, int x, int y) {
         mouseXOld = x; /* on sauvegarde la position de la souris */
         mouseYOld = y;
 
+        addPoint(x, y);
+    }
+    /* si on appuie sur le bouton droit */
+    if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+        mouseXOld = x; /* on sauvegarde la position de la souris */
+        mouseYOld = y;
+
         //TODO : Added real coordonates with window coordonate
-        addPoint(x,y); // test
+        removePoint(x, y);
     }
     /* si on relache le bouton gauche */
     if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
@@ -272,20 +279,33 @@ void resetSegmentsDisplay() {
  **                                                            **
  ****************************************************************/
 void addPoint(coord_t x, coord_t y) {
-    Point p = convertPointLocation(x,y);
+    Point p = convertPointLocation(x, y);
     pointList.push_back(p);
     cout << "Added new point at " << p.x << ';' << p.y << endl;
     resetPointsDisplay();
     resetSegmentsDisplay();
 }
 
-;void reset() {
+void removePoint(coord_t x, coord_t y) {
+    Point pToDelete = convertPointLocation(x, y);
+    float threshold = DEFAULT_DELETE_THRESHOLD;
+    for (int i = 0; i < pointList.size(); i++) {
+        if ((pToDelete.x - threshold < pointList[i].x && pointList[i].x < pToDelete.x + threshold)
+            && (pToDelete.y - threshold < pointList[i].y && pointList[i].y < pToDelete.y + threshold)) {
+            pointList.erase(pointList.begin() + i);
+        }
+    }
+    resetPointsDisplay();
+    resetSegmentsDisplay();
+}
+
+void reset() {
     string TAG = "RESET";
     cout << "\n" << TAG << ": Start" << endl;
 
     pointList.clear(); //clear point list
-    trX=trY=0;//reset position
-    scale=DEFAULT_SCALE;//reset scale
+    trX = trY = 0;//reset position
+    scale = DEFAULT_SCALE;//reset scale
 
     resetDisplay();
 
@@ -303,13 +323,13 @@ int chooseAlgorithm() {
     scanf("%d", &choix_tmp);
     currentAlgo = (Algorithm) choix_tmp;
 
-    if (currentAlgo < 0 ) exit(-1);
+    if (currentAlgo < 0) exit(-1);
 }
 
 void zoomIn() {
     string TAG = "ZoomIn";
     scale += GAP_ZOOMING;
-    cout<<TAG<<"- scale : "<<scale<<endl;
+    cout << TAG << "- scale : " << scale << endl;
     glutPostRedisplay();
 }
 
@@ -317,7 +337,7 @@ void zoomOut() {
     if (scale - GAP_ZOOMING > 1) {
         string TAG = "ZoomOut";
         scale -= GAP_ZOOMING;
-        cout<<TAG<<"- scale : "<<scale<<endl;
+        cout << TAG << "- scale : " << scale << endl;
         glutPostRedisplay();
     }
 }
@@ -334,14 +354,14 @@ void rotate(int x, int y) {
     }
 }
 
-Point convertPointLocation(double x, double y){
-    x=x-getWidth()/2+trX;
-    y=y-getHeight()/2+trY;
+Point convertPointLocation(double x, double y) {
+    x = x - getWidth() / 2 + trX;
+    y = y - getHeight() / 2 + trY;
 
-    x/=(scale);
-    y/=(scale);
+    x /= (scale);
+    y /= (scale);
 
-    y=-y; //the y axe is displayed upside-down
+    y = -y; //the y axe is displayed upside-down
 
     Point p;
     p.x = x;

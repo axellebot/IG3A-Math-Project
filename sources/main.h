@@ -39,6 +39,7 @@ const double SIZE_POINT = 15;
 const double SIZE_LANDMARK_SEGMENT = 2.0;
 const double SIZE_SEGMENT = 4.0;
 const double DEFAULT_SCALE=30;
+const double DEFAULT_DELETE_THRESHOLD = 0.5; //Thxreshold to delete point
 
 //Moving Behaviors
 const float GAP_MOVING = 0.25;
@@ -112,6 +113,8 @@ void resetSegmentsDisplay();
  **                                                            **
  ****************************************************************/
 void addPoint(coord_t x, coord_t y);
+
+void removePoint(coord_t x, coord_t y);
 
 int chooseAlgorithm();
 
