@@ -135,16 +135,16 @@ void special(int key, int x, int y) {
 
     switch (key) {
         case GLUT_KEY_UP:
-            trY += scale * GAP_MOVING;
-            break;
-        case GLUT_KEY_DOWN:
             trY -= scale * GAP_MOVING;
             break;
+        case GLUT_KEY_DOWN:
+            trY += scale * GAP_MOVING;
+            break;
         case GLUT_KEY_RIGHT:
-            trX += scale * GAP_MOVING;
+            trX -= scale * GAP_MOVING;
             break;
         case GLUT_KEY_LEFT:
-            trX -= scale * GAP_MOVING;
+            trX += scale * GAP_MOVING;
             break;
     }
 
@@ -355,7 +355,7 @@ void rotate(int x, int y) {
 }
 
 Point convertPointLocation(double x, double y) {
-    x = x - getWidth() / 2 + trX;
+    x = x - getWidth() / 2 - trX;
     y = y - getHeight() / 2 + trY;
 
     x /= (scale);
