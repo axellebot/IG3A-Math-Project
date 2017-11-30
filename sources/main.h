@@ -45,12 +45,12 @@ const int DEFAULT_SCREEN_WIDTH = 1000;
 const int DEFAULT_SCREEN_HEIGHT = 1000;
 
 //Size config
-const double SIZE_LANDMARK_POINT = 10;
-const double SIZE_POINT = 15;
-const double SIZE_LANDMARK_SEGMENT = 2.0;
-const double SIZE_SEGMENT = 4.0;
-const double DEFAULT_SCALE=30;
-const double DEFAULT_DELETE_THRESHOLD = 0.5; //Thxreshold to delete point
+const float SIZE_LANDMARK_POINT = 10;
+const float SIZE_POINT = 15;
+const float SIZE_LANDMARK_SEGMENT = 2.0;
+const float SIZE_SEGMENT = 4.0;
+const float DEFAULT_SCALE=30;
+const float DEFAULT_DELETE_THRESHOLD = 0.5; //Thxreshold to delete point
 
 //Moving Behaviors
 const float GAP_MOVING = 0.25;

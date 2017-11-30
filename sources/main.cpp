@@ -285,6 +285,9 @@ void addPoint(coord_t x, coord_t y) {
 }
 
 void removePoint(coord_t x, coord_t y) {
+    const string TAG = "REMOVE_POINT";
+    logger->info("{0}: Remove point at {1};{2} ",TAG,x,y);
+
     Point pToDelete = convertPointLocation(x, y);
     cout << "Removed point at : " << pToDelete.x << " and "<<pToDelete.y<<endl;
     float threshold = DEFAULT_DELETE_THRESHOLD;
