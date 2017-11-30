@@ -10,8 +10,8 @@ find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 
 set(SOURCE_FILES
+        main.h
         main.cpp
-        constants.h
         Point.h
         Algorithm.cpp
         Algorithm.h

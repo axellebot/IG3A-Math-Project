@@ -1,36 +1,17 @@
-/*********************************************************
- *                    main.cpp                           *
- *********************************************************/
+//
+// Created by axel on 25/10/17.
+//
 
 #include <stdlib.h>
 #include <fstream>
 #include <iostream>
+#include <chrono>
 #include <vector>
 #include <GL/glut.h>// Inclusion des fichiers d'en-tete Glut
-#include "constants.h"
-#include "Point.h"
-#include "Algorithm.h"
+
+#include "main.h"
 
 using namespace std;
-
-const int SCREEN_WIDTH = 1000;
-const int SCREEN_HEIGHT = 1000;
-
-Algorithm currentAlgo;
-
-vector<Point> pointList;
-
-double scale = 30;
-int anglex, angley, x, y, xold, yold;
-double trX = 0.0, trY = 0.0, trZ = 0.0;
-
-bool leftClicked = false;
-
-void addPointsTest();
-
-void addPoint(coord_t x, coord_t y);
-
-void reset();
 
 /**
  * Get Width
@@ -50,7 +31,7 @@ int getHeight() {
 
 /****************************************************************
  **                                                            **
- **                           Tracage                          **
+ **                           Drawing                          **
  **                                                            **
  ****************************************************************/
 
@@ -93,6 +74,10 @@ void drawSegment(Point p1, Point p2, double red, double green, double blue, doub
  **                  OpenGL overloading                        **
  **                                                            **
  ****************************************************************/
+void idle() {
+    glutPostRedisplay();
+}
+
 
 /**
  * Display function
@@ -101,25 +86,18 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear display with background color
     glLoadIdentity();
 
-    //Pour la 3D
-    /*
-    glRotatef(-angley,1.0,0.0,0.0);
-    glRotatef(-anglex,0.0,1.0,0.0);
-     */
-
-    // Pour la 2D
-    glRotatef(180, 1.0, 0.0, 0.0); // rotate X axe
-    glRotatef(180, 0.0, 1.0, 0.0); // rotate Y axe
+    glTranslatef(trX, trY, trZ);//translate from window origin (top up corner)
     glRotatef(-anglex + angley, 0.0, 0.0, 1.0); // rotate Z axe
     glScalef(scale, scale, scale); // change scale
-    glTranslatef(-trX, trY, trY);//translate
-    //Oredered by layers
-    //TOP
+
+    //LAYERS
+    //top
     glCallList(MMP_LAYER_INDEX_DRAW_POINT);
     glCallList(MMP_LAYER_INDEX_DRAW_SEGMENT);
     glCallList(MMP_LAYER_INDEX_LANDMARK_POINTS);
     glCallList(MMP_LAYER_INDEX_LANDMARK_SEGMENT);
-    //BOTTOM
+    //bottom
+
     glFlush();
     glutSwapBuffers(); //switch buffers
 }
@@ -137,15 +115,12 @@ void keyboardInput(unsigned char key, int x, int y) {
             exit(0);
         case 'r': //Reset
             reset();
-            glutPostRedisplay();
             break;
         case '+' :
-            scale += 0.5;
-            glutPostRedisplay();
+            zoomIn();
             break;
-        case '-' :
-            scale -= 0.5;
-            glutPostRedisplay();
+        case '-':
+            zoomOut();
             break;
     }
 }
@@ -161,16 +136,16 @@ void special(int key, int x, int y) {
 
     switch (key) {
         case GLUT_KEY_UP:
-            trY -= 0.25;
+            trY -= scale * GAP_MOVING;
             break;
         case GLUT_KEY_DOWN:
-            trY += 0.25;
-            break;
-        case GLUT_KEY_LEFT:
-            trX -= 0.25;
+            trY += scale * GAP_MOVING;
             break;
         case GLUT_KEY_RIGHT:
-            trX += 0.25;
+            trX -= scale * GAP_MOVING;
+            break;
+        case GLUT_KEY_LEFT:
+            trX += scale * GAP_MOVING;
             break;
     }
 
@@ -186,10 +161,11 @@ void reshape(int width, int height) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     //taille de la scene
-    double Ortho = -150;
-    glOrtho(-Ortho, Ortho, -Ortho, Ortho, -Ortho, Ortho);// fenetre
+    // help here -> http://www3.ntu.edu.sg/home/ehchua/programming/opengl/cg_introduction.html
+    double ortho = getWidth() / 2;
+    glOrtho(-ortho, ortho, -ortho, ortho, 1, -1);// fenetre
     glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, getWidth(), getHeight()); //set the viewport
 }
 
 /**
@@ -203,16 +179,25 @@ void mouseInput(int button, int state, int x, int y) {
     cout << "Mouse Click at " << x << ';' << y << endl;
     /* si on appuie sur le bouton gauche */
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        leftClicked = true; /* le booleen leftClicked passe a 1 (vrai) */
-        xold = x; /* on sauvegarde la position de la souris */
-        yold = y;
+        leftClicked = true;
+        mouseLeftXOld = x; /* saved right click position */
+        mouseLeftYOld = y;
 
-        //TODO : Added real coordonates with window coordonate
-        addPointsTest(); // test
+        addPoint(x, y);
+    }
+    /* si on appuie sur le bouton droit */
+    if (button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN) {
+        middleClicked = true;
+        mouseMiddleXOld = x; /* saved right click position */
+        mouseMiddleYOld = y;
+
+        removePoint(x, y);
     }
     /* si on relache le bouton gauche */
     if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
-        leftClicked = false; /* le booleen leftClicked passe a 0 (faux) */
+        leftClicked = false;
+    if (button == GLUT_MIDDLE_BUTTON && state == GLUT_UP)
+        middleClicked = false;
 }
 
 /**
@@ -223,79 +208,65 @@ void mouseInput(int button, int state, int x, int y) {
 void mouseMotion(int x, int y) {
     if (leftClicked) /* si le bouton gauche est leftClicked */
     {
-        /* on modifie les angles de rotation de l'objet
-       en fonction de la position actuelle de la souris et de la derniere
-       position sauvegardee */
-        anglex = anglex + (x - xold);
-        angley = angley + (y - yold);
-        glutPostRedisplay(); /* on demande un rafraichissement de l'affichage */
+        rotate(x, y);
     }
-
-    xold = x; /* sauvegarde des valeurs courante de le position de la souris */
-    yold = y;
+    mouseLeftXOld = x; /* sauvegarde des valeurs courante de le position de la souris */
+    mouseLeftYOld = y;
 }
 
 /****************************************************************
  **                                                            **
- **                         Affichage                          **
+ **                         Display                            **
  **                                                            **
  ****************************************************************/
-void refreshLandmarkDisplay() {
+void resetDisplay() {
+    string TAG = "INIT_DISPLAY";
+    cout << "\n" << TAG << " : Start" << endl;
+
+    resetLandmarkDisplay();
+    resetPointsDisplay();
+    resetSegmentsDisplay();
+
+    cout << "\n" << TAG << " : End" << endl;
+}
+
+void resetLandmarkDisplay() {
     Point o, i, j;
     o.x = 0., o.y = 0., i.x = 1., i.y = 0., j.x = 0., j.y = 1.;
 
     glNewList(MMP_LAYER_INDEX_LANDMARK_POINTS, GL_COMPILE_AND_EXECUTE); //list number X
-    drawPoint(o, 0., 0., 1., 15.);//O
-    drawPoint(i, 1., 0., 0., 10.); //I
-    drawPoint(j, 0., 0.5, 0., 10.); //J
+    drawPoint(j, 0., 0.5, 0., SIZE_LANDMARK_POINT); //J
+    drawPoint(i, 1., 0., 0., SIZE_LANDMARK_POINT); //I
+    drawPoint(o, 0., 0., 1., SIZE_LANDMARK_POINT);//O
     glEndList();
 
     glNewList(MMP_LAYER_INDEX_LANDMARK_SEGMENT, GL_COMPILE_AND_EXECUTE); //list number X
-    drawSegment(o, i, 1.0, 0.0, 1.0, 2.0); // on trace [OI]
-    drawSegment(o, j, 1.0, 0.50, 0.0, 2.0);// on trace [OJ]
+    drawSegment(o, i, 1.0, 0.0, 1.0, SIZE_LANDMARK_SEGMENT); // on trace [OI]
+    drawSegment(o, j, 1.0, 0.50, 0.0, SIZE_LANDMARK_SEGMENT);// on trace [OJ]
     glEndList();
 }
 
-void refreshPointsDisplay() {
+void resetPointsDisplay() {
     glNewList(MMP_LAYER_INDEX_DRAW_POINT, GL_COMPILE_AND_EXECUTE); //List for points
     for (Point p : pointList) {
-        drawPoint(p, 0, 0, 0, 20);
+        drawPoint(p, 0, 0, 0, SIZE_POINT);
     }
     glEndList();
     glutPostRedisplay();
 }
 
-void refreshSegmentsDisplay() {
+void resetSegmentsDisplay() {
     glNewList(MMP_LAYER_INDEX_DRAW_SEGMENT, GL_COMPILE_AND_EXECUTE); //List for segments
 
     //check if list is filled
     if (pointList.size() > 0) {
-        vector<Point> hullPointList;
-        switch (currentAlgo) {
-            case MonotoneChain:
-                hullPointList = Algorithms::MonotoneChain::convexHull(pointList);
-                break;
-        }
-
+        vector<Point> hullPointList = getHullPoints();
         for (int i = 0; i < hullPointList.size() - 1; i++) {
-            drawSegment(hullPointList.at(i), hullPointList.at(i + 1), 0, 0, 0, 20);
+            drawSegment(hullPointList.at(i), hullPointList.at(i + 1), 0, 0, 0, SIZE_SEGMENT);
         }
-        drawSegment(hullPointList.front(), hullPointList.back(), 0, 0, 0, 20);
+        drawSegment(hullPointList.front(), hullPointList.back(), 0, 0, 0, SIZE_SEGMENT);
     }
-
     glEndList();
-}
-
-//fonction ou les objets sont a definir
-void initDisplay() {
-    string TAG = "INIT_DISPLAY";
-    cout << "\n" << TAG << " : Start" << endl;
-
-    refreshLandmarkDisplay();
-    refreshPointsDisplay();
-    refreshSegmentsDisplay();
-
-    cout << "\n" << TAG << " : End" << endl;
 }
 
 /****************************************************************
@@ -303,25 +274,26 @@ void initDisplay() {
  **                           Actions                          **
  **                                                            **
  ****************************************************************/
-void addPointsTest() {
-    addPoint(1, 1);
-    addPoint(2, 1);
-    addPoint(3, 1);
-    addPoint(2, 5);
-    addPoint(3, 2);
-    addPoint(6, 4);
-    addPoint(2, 6);
-    addPoint(-2, -6);
-}
-
 void addPoint(coord_t x, coord_t y) {
-    Point p;
-    p.x = x;
-    p.y = y;
+    Point p = convertPointLocation(x, y);
     pointList.push_back(p);
     cout << "Added new point at " << p.x << ';' << p.y << endl;
-    refreshPointsDisplay();
-    refreshSegmentsDisplay();
+    resetPointsDisplay();
+    resetSegmentsDisplay();
+}
+
+void removePoint(coord_t x, coord_t y) {
+    Point pToDelete = convertPointLocation(x, y);
+    cout << "Removed point at : " << pToDelete.x << " and "<<pToDelete.y<<endl;
+    float threshold = DEFAULT_DELETE_THRESHOLD;
+    for (int i = 0; i < pointList.size(); i++) {
+        if ((pToDelete.x - threshold < pointList[i].x && pointList[i].x < pToDelete.x + threshold)
+            && (pToDelete.y - threshold < pointList[i].y && pointList[i].y < pToDelete.y + threshold)) {
+            pointList.erase(pointList.begin() + i);
+        }
+    }
+    resetPointsDisplay();
+    resetSegmentsDisplay();
 }
 
 void reset() {
@@ -329,11 +301,15 @@ void reset() {
     cout << "\n" << TAG << ": Start" << endl;
 
     pointList.clear(); //clear point list
-    initDisplay();
+    trX = trY = 0;//reset position
+    scale = DEFAULT_SCALE;//reset scale
+
+    resetDisplay();
+
+    glutPostRedisplay();
 
     cout << "\n" << TAG << ": End" << endl;
 }
-
 
 int chooseAlgorithm() {
     int choix_tmp = 1;
@@ -344,7 +320,73 @@ int chooseAlgorithm() {
     scanf("%d", &choix_tmp);
     currentAlgo = (Algorithm) choix_tmp;
 
-    if (currentAlgo == 0) exit(-1);
+    if (currentAlgo < 0) exit(-1);
+}
+
+void zoomIn() {
+    string TAG = "ZoomIn";
+    scale += GAP_ZOOMING;
+    cout << TAG << "- scale : " << scale << endl;
+    glutPostRedisplay();
+}
+
+void zoomOut() {
+    if (scale - GAP_ZOOMING > 1) {
+        string TAG = "ZoomOut";
+        scale -= GAP_ZOOMING;
+        cout << TAG << "- scale : " << scale << endl;
+        glutPostRedisplay();
+    }
+}
+
+
+void rotate(int x, int y) {
+    if (FREE_Z_ROTATION) {
+        /* on modifie les angles de rotation de l'objet
+       en fonction de la position actuelle de la souris et de la derniere
+       position sauvegardee */
+        anglex += (x - mouseLeftXOld);
+        angley += (y - mouseLeftYOld);
+        glutPostRedisplay();
+    }
+}
+
+Point convertPointLocation(double x, double y) {
+    x = x - getWidth() / 2 - trX;
+    y = y - getHeight() / 2 + trY;
+
+    x /= (scale);
+    y /= (scale);
+
+    y = -y; //the y axe is displayed upside-down
+
+    Point p;
+    p.x = x;
+    p.y = y;
+
+    return p;
+}
+
+vector<Point> getHullPoints(){
+    const string TAG = "getHullPoints";
+    vector<Point> hullPointList;
+
+    auto start =  std::chrono::system_clock::now();
+
+    switch (currentAlgo) {
+        case MonotoneChain:
+            hullPointList = Algorithms::MonotoneChain::convexHull(pointList);
+            break;
+        default :
+            hullPointList = {};
+    }
+
+    auto end =  std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end-start;
+
+    cout << TAG <<":"<<"counter -> "<< elapsed_seconds.count() <<" secondes";
+
+    return hullPointList;
 }
 
 /****************************************************************
@@ -352,12 +394,40 @@ int chooseAlgorithm() {
  **                            Main                            **
  **                                                            **
  ****************************************************************/
+void menuAlgoTrigger(int value) {
+    cout << "Algo Menu Triggered :" << value<<endl;
+    currentAlgo = (Algorithm) value;
+    glutPostRedisplay();
+}
+
+void menuMainTrigger(int value) {
+    cout << "Main Menu Triggered :" << value<<endl;
+    glutPostRedisplay();
+}
+
+void initMenu() {
+    // 1st Sub Menu
+    int idMenuAlgo = glutCreateMenu(menuAlgoTrigger);
+    // Add sub menu entry
+    glutAddMenuEntry("Monotone Chain",MonotoneChain);
+
+    // Create an entry
+    glutCreateMenu(menuMainTrigger);
+    glutAddSubMenu("Choose algorithm", idMenuAlgo);
+
+    // Let the menu respond on the right mouse button
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
 
 void init() {
+    //chooseAlgorithm();
+
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowPosition(0, 0);
-    glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+    glutInitWindowSize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
     glutCreateWindow(MMP_WINDOW_LABEL);
+
+    initMenu();
 
     /* Initialisation d'OpenGL */
     glClearColor(1.0, 1.0, 1.0, 0.0);
@@ -373,6 +443,7 @@ void init() {
     glDisable(GL_LIGHTING);
 
     /* Register OpenGL Function */
+    glutIdleFunc(idle);
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboardInput);
@@ -381,20 +452,16 @@ void init() {
     glutMotionFunc(mouseMotion);
 }
 
-
 int main(int argc, char **argv) {
-
-    //choose a algorithm
-    chooseAlgorithm();
-
-
     /* initialisation de glut et creation de la fenetre */
     glutInit(&argc, argv);
 
     init();
-    initDisplay();
+    resetDisplay();
 
     /* Entree dans la boucle principale glut */
     glutMainLoop();
     return 0;
 }
+
+
