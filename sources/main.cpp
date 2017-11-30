@@ -178,23 +178,25 @@ void mouseInput(int button, int state, int x, int y) {
     cout << "Mouse Click at " << x << ';' << y << endl;
     /* si on appuie sur le bouton gauche */
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        leftClicked = true; /* le booleen leftClicked passe a 1 (vrai) */
-        mouseXOld = x; /* on sauvegarde la position de la souris */
-        mouseYOld = y;
+        leftClicked = true;
+        mouseLeftXOld = x; /* saved right click position */
+        mouseLeftYOld = y;
 
         addPoint(x, y);
     }
     /* si on appuie sur le bouton droit */
-    if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-        mouseXOld = x; /* on sauvegarde la position de la souris */
-        mouseYOld = y;
+    if (button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN) {
+        middleClicked = true;
+        mouseMiddleXOld = x; /* saved right click position */
+        mouseMiddleYOld = y;
 
-        //TODO : Added real coordonates with window coordonate
         removePoint(x, y);
     }
     /* si on relache le bouton gauche */
     if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
-        leftClicked = false; /* le booleen leftClicked passe a 0 (faux) */
+        leftClicked = false;
+    if (button == GLUT_MIDDLE_BUTTON && state == GLUT_UP)
+        middleClicked = false;
 }
 
 /**
@@ -207,8 +209,8 @@ void mouseMotion(int x, int y) {
     {
         rotate(x, y);
     }
-    mouseXOld = x; /* sauvegarde des valeurs courante de le position de la souris */
-    mouseYOld = y;
+    mouseLeftXOld = x; /* sauvegarde des valeurs courante de le position de la souris */
+    mouseLeftYOld = y;
 }
 
 /****************************************************************
@@ -288,6 +290,7 @@ void addPoint(coord_t x, coord_t y) {
 
 void removePoint(coord_t x, coord_t y) {
     Point pToDelete = convertPointLocation(x, y);
+    cout << "Removed point at : " << pToDelete.x << " and "<<pToDelete.y<<endl;
     float threshold = DEFAULT_DELETE_THRESHOLD;
     for (int i = 0; i < pointList.size(); i++) {
         if ((pToDelete.x - threshold < pointList[i].x && pointList[i].x < pToDelete.x + threshold)
@@ -348,8 +351,8 @@ void rotate(int x, int y) {
         /* on modifie les angles de rotation de l'objet
        en fonction de la position actuelle de la souris et de la derniere
        position sauvegardee */
-        anglex += (x - mouseXOld);
-        angley += (y - mouseYOld);
+        anglex += (x - mouseLeftXOld);
+        angley += (y - mouseLeftYOld);
         glutPostRedisplay();
     }
 }
@@ -375,14 +378,40 @@ Point convertPointLocation(double x, double y) {
  **                            Main                            **
  **                                                            **
  ****************************************************************/
+void menuAlgoTrigger(int value) {
+    cout << "Algo Menu Triggered :" << value<<endl;
+    currentAlgo = (Algorithm) value;
+    glutPostRedisplay();
+}
+
+void menuMainTrigger(int value) {
+    cout << "Main Menu Triggered :" << value<<endl;
+    glutPostRedisplay();
+}
+
+void initMenu() {
+    // 1st Sub Menu
+    int idMenuAlgo = glutCreateMenu(menuAlgoTrigger);
+    // Add sub menu entry
+    glutAddMenuEntry("Monotone Chain",MonotoneChain);
+
+    // Create an entry
+    glutCreateMenu(menuMainTrigger);
+    glutAddSubMenu("Choose algorithm", idMenuAlgo);
+
+    // Let the menu respond on the right mouse button
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
 void init() {
-    //choose a algorithm
-    chooseAlgorithm();
+    //chooseAlgorithm();
 
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowPosition(0, 0);
     glutInitWindowSize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
     glutCreateWindow(MMP_WINDOW_LABEL);
+
+    initMenu();
 
     /* Initialisation d'OpenGL */
     glClearColor(1.0, 1.0, 1.0, 0.0);
@@ -418,3 +447,5 @@ int main(int argc, char **argv) {
     glutMainLoop();
     return 0;
 }
+
+

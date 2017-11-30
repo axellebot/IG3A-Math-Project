@@ -56,15 +56,15 @@ double scale = DEFAULT_SCALE;
 //rotation and position on windows axes
 int anglex, angley;
 //mouse behaviors
-bool leftClicked = false;
-int mouseXOld, mouseYOld;
+bool leftClicked = false,middleClicked=false;
+int mouseLeftXOld, mouseLeftYOld;
+int mouseMiddleXOld, mouseMiddleYOld;
 //tranlation on windows axes
 double trX = 0.0, trY = 0.0, trZ = 0.0;
 //current algorithm
-Algorithm currentAlgo;
+Algorithm currentAlgo = MonotoneChain;
 //list of current points displayed
 vector<Point> pointList;
-
 
 /****************************************************************
  **                                                            **
