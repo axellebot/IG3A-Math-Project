@@ -162,8 +162,9 @@ void reshape(int width, int height) {
     glLoadIdentity();
     //taille de la scene
     // help here -> http://www3.ntu.edu.sg/home/ehchua/programming/opengl/cg_introduction.html
-    double ortho = getWidth() / 2;
-    glOrtho(-ortho, ortho, -ortho, ortho, 1, -1);// fenetre
+    double orthoWidth = getWidth() / 2;
+    double orthoHeight = getHeight() / 2;
+    glOrtho(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, 1, -1);// fenetre
     glMatrixMode(GL_MODELVIEW);
     glViewport(0, 0, getWidth(), getHeight()); //set the viewport
 }
