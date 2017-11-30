@@ -194,6 +194,14 @@ void mouseInput(int button, int state, int x, int y) {
 
         removePoint(x, y);
     }
+
+    if(button == 3 && state == GLUT_DOWN){
+        zoomOut();
+    }
+    if(button == 4 && state == GLUT_DOWN){
+        zoomIn();
+    }
+
     /* si on relache le bouton gauche */
     if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
         leftClicked = false;
