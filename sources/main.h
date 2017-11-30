@@ -128,6 +128,8 @@ void rotate(int x, int y);
 
 Point convertPointLocation(double x, double y);
 
+vector<Point> getHullPoints();
+
 /****************************************************************
  **                                                            **
  **                     Prototypes Main                        **

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <iostream>
+#include <chrono>
 #include <vector>
 #include <GL/glut.h>// Inclusion des fichiers d'en-tete Glut
 
@@ -259,19 +260,12 @@ void resetSegmentsDisplay() {
 
     //check if list is filled
     if (pointList.size() > 0) {
-        vector<Point> hullPointList;
-        switch (currentAlgo) {
-            case MonotoneChain:
-                hullPointList = Algorithms::MonotoneChain::convexHull(pointList);
-                break;
-        }
-
+        vector<Point> hullPointList = getHullPoints();
         for (int i = 0; i < hullPointList.size() - 1; i++) {
             drawSegment(hullPointList.at(i), hullPointList.at(i + 1), 0, 0, 0, SIZE_SEGMENT);
         }
         drawSegment(hullPointList.front(), hullPointList.back(), 0, 0, 0, SIZE_SEGMENT);
     }
-
     glEndList();
 }
 
@@ -371,6 +365,28 @@ Point convertPointLocation(double x, double y) {
     p.y = y;
 
     return p;
+}
+
+vector<Point> getHullPoints(){
+    const string TAG = "getHullPoints";
+    vector<Point> hullPointList;
+
+    auto start =  std::chrono::system_clock::now();
+
+    switch (currentAlgo) {
+        case MonotoneChain:
+            hullPointList = Algorithms::MonotoneChain::convexHull(pointList);
+            break;
+        default :
+            hullPointList = {};
+    }
+
+    auto end =  std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end-start;
+
+    cout << TAG <<":"<<"counter -> "<< elapsed_seconds.count() <<" secondes";
+
+    return hullPointList;
 }
 
 /****************************************************************
