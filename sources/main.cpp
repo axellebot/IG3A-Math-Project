@@ -2,12 +2,7 @@
 // Created by axel on 25/10/17.
 //
 
-#include <stdlib.h>
-#include <fstream>
-#include <iostream>
-#include <chrono>
-#include <vector>
-#include <GL/glut.h>// Inclusion des fichiers d'en-tete Glut
+
 
 #include "main.h"
 
@@ -109,7 +104,9 @@ void display() {
  * @param y
  */
 void keyboardInput(unsigned char key, int x, int y) {
-    printf("Keyboard input : %d\n", key);
+    const string TAG = "KEYBOARD_INPUT";
+    logger->debug("{0}: key->{1}, x->{2}, y->{3}",TAG,key,x,y);
+
     switch (key) {
         case 'q' : /*la key 'q' permet de quitter le programme */
             exit(0);
@@ -132,7 +129,8 @@ void keyboardInput(unsigned char key, int x, int y) {
  * @param y
  */
 void special(int key, int x, int y) {
-    printf("Special Keyboard input : %d\n", key);
+    const string TAG = "SPECIAL_INPUT";
+    logger->debug("{0}: key->{1}, x->{2}, y->{3}",TAG,key,x,y);
 
     switch (key) {
         case GLUT_KEY_UP:
@@ -146,6 +144,8 @@ void special(int key, int x, int y) {
             break;
         case GLUT_KEY_LEFT:
             trX += scale * GAP_MOVING;
+            break;
+        default:
             break;
     }
 
@@ -176,7 +176,8 @@ void reshape(int width, int height) {
  * @param y
  */
 void mouseInput(int button, int state, int x, int y) {
-    cout << "Mouse Click at " << x << ';' << y << endl;
+    const string TAG = "MOUSE_INPUT";
+    logger->debug("{0}: button->{1}, state->{2}, x->{3},y->{4}",TAG,button,state,x,y);
     /* si on appuie sur le bouton gauche */
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         leftClicked = true;
@@ -220,14 +221,14 @@ void mouseMotion(int x, int y) {
  **                                                            **
  ****************************************************************/
 void resetDisplay() {
-    string TAG = "INIT_DISPLAY";
-    cout << "\n" << TAG << " : Start" << endl;
+    const string TAG = "RESET_DISPLAY";
+    logger->info("{0}: START",TAG);
 
     resetLandmarkDisplay();
     resetPointsDisplay();
     resetSegmentsDisplay();
 
-    cout << "\n" << TAG << " : End" << endl;
+    logger->info("{0}: END",TAG);
 }
 
 void resetLandmarkDisplay() {
@@ -275,9 +276,10 @@ void resetSegmentsDisplay() {
  **                                                            **
  ****************************************************************/
 void addPoint(coord_t x, coord_t y) {
+    const string TAG = "ADD_POINT";
     Point p = convertPointLocation(x, y);
     pointList.push_back(p);
-    cout << "Added new point at " << p.x << ';' << p.y << endl;
+    logger->info("{0}: Point added : x->{1}, y->{2}",TAG,p.x,p.y);
     resetPointsDisplay();
     resetSegmentsDisplay();
 }
@@ -324,17 +326,17 @@ int chooseAlgorithm() {
 }
 
 void zoomIn() {
-    string TAG = "ZoomIn";
+    string TAG = "ZOOM_IN";
     scale += GAP_ZOOMING;
-    cout << TAG << "- scale : " << scale << endl;
+    logger->info("{0}: Zoom Int",TAG,scale);
     glutPostRedisplay();
 }
 
 void zoomOut() {
     if (scale - GAP_ZOOMING > 1) {
-        string TAG = "ZoomOut";
+        string TAG = "ZOOM_OUT";
         scale -= GAP_ZOOMING;
-        cout << TAG << "- scale : " << scale << endl;
+        logger->info("{0}: Zoom Int",TAG,scale);
         glutPostRedisplay();
     }
 }
@@ -352,6 +354,9 @@ void rotate(int x, int y) {
 }
 
 Point convertPointLocation(double x, double y) {
+    const string TAG ="CONVERT_POINT_LOCATION";
+    double oldX=x,oldY=y;
+
     x = x - getWidth() / 2 - trX;
     y = y - getHeight() / 2 + trY;
 
@@ -364,11 +369,13 @@ Point convertPointLocation(double x, double y) {
     p.x = x;
     p.y = y;
 
+    logger->debug("{0}: Convert location x:{1}->{2}, y:{3}->{4}",TAG,oldX,p.x,oldY,p.y);
+
     return p;
 }
 
 vector<Point> getHullPoints(){
-    const string TAG = "getHullPoints";
+    const string TAG = "GET_HULL_POINTS";
     vector<Point> hullPointList;
 
     auto start =  std::chrono::system_clock::now();
@@ -384,7 +391,7 @@ vector<Point> getHullPoints(){
     auto end =  std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
 
-    cout << TAG <<":"<<"counter -> "<< elapsed_seconds.count() <<" secondes";
+    logger->info("{0}:counter {1} secondes",TAG,elapsed_seconds.count());
 
     return hullPointList;
 }
@@ -395,14 +402,18 @@ vector<Point> getHullPoints(){
  **                                                            **
  ****************************************************************/
 void menuAlgoTrigger(int value) {
-    cout << "Algo Menu Triggered :" << value<<endl;
+    logger->info("Algo Menu Triggered :",value);
     currentAlgo = (Algorithm) value;
     glutPostRedisplay();
 }
 
 void menuMainTrigger(int value) {
-    cout << "Main Menu Triggered :" << value<<endl;
+    logger->info("Main Menu Triggered :",value);
     glutPostRedisplay();
+}
+
+void initLogger(){
+    logger->set_level(LOGGER_LEVEL); // Set specific logger's log level
 }
 
 void initMenu() {
@@ -419,7 +430,7 @@ void initMenu() {
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-void init() {
+void initWindow() {
     //chooseAlgorithm();
 
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -456,11 +467,14 @@ int main(int argc, char **argv) {
     /* initialisation de glut et creation de la fenetre */
     glutInit(&argc, argv);
 
-    init();
+    initLogger();// init logger
+    initWindow();//init window
+
     resetDisplay();
 
     /* Entree dans la boucle principale glut */
     glutMainLoop();
+
     return 0;
 }
 

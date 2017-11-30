@@ -21,6 +21,10 @@ apt-get install libxmu-dev libxmu-headers
 ```
 apt-get install libxi-dev
 ```
+- Install Logger :
+```
+apt-get install libspdlog-dev
+```
 
 ## NB
 Help for CLion to deal with OpenGL libs : 

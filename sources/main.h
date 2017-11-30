@@ -5,6 +5,14 @@
 #ifndef MINIPROJETMATH_MAIN_H
 #define MINIPROJETMATH_MAIN_H
 
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <chrono>
+#include <vector>
+#include <GL/glut.h>// Inclusion des fichiers d'en-tete Glut
+#include <spdlog/spdlog.h> // Logger
+
 #include "Point.h"
 #include "Algorithm.h"
 
@@ -22,6 +30,9 @@
  ****************************************************************/
 #define MMP_WINDOW_LABEL "Maths - Mini Project"
 #define MMP_AUTHORS "Axel LE BOT | Andrew LENC"
+
+//Level of logger
+const spdlog::level::level_enum LOGGER_LEVEL = spdlog::level::debug;
 
 //LAYERS
 #define MMP_LAYER_INDEX_LANDMARK_SEGMENT 1
@@ -65,6 +76,9 @@ double trX = 0.0, trY = 0.0, trZ = 0.0;
 Algorithm currentAlgo = MonotoneChain;
 //list of current points displayed
 vector<Point> pointList;
+
+//Console logger(with color support)
+auto logger = spdlog::stdout_logger_mt("logger",true);
 
 /****************************************************************
  **                                                            **
@@ -135,6 +149,8 @@ vector<Point> getHullPoints();
  **                     Prototypes Main                        **
  **                                                            **
  ****************************************************************/
-void init();
+void initLogger();
+void initMenu();
+void initWindow();
 
 #endif //MINIPROJETMATH_MAIN_H
