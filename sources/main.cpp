@@ -110,6 +110,7 @@ void keyboardInput(unsigned char key, int x, int y) {
     switch (key) {
         case 'q' : /*la key 'q' permet de quitter le programme */
             exit(0);
+            break;
         case 'r': //Reset
             reset();
             break;
@@ -118,6 +119,9 @@ void keyboardInput(unsigned char key, int x, int y) {
             break;
         case '-':
             zoomOut();
+            break;
+        case 'd':
+            deleteLastPoint();
             break;
     }
 }
@@ -407,6 +411,16 @@ vector<Point> getHullPoints(){
     logger->info("{0}:counter {1} secondes",TAG,elapsed_seconds.count());
 
     return hullPointList;
+}
+
+void deleteLastPoint(){
+    const string TAG = "GET_HULL_POINTS";
+    logger->info("{0}:Delete last point",TAG);
+
+    if(pointList.size()>0) pointList.pop_back();
+
+    resetPointsDisplay();
+    resetSegmentsDisplay();
 }
 
 /****************************************************************

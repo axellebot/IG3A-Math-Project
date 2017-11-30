@@ -144,6 +144,8 @@ Point convertPointLocation(double x, double y);
 
 vector<Point> getHullPoints();
 
+void deleteLastPoint();
+
 /****************************************************************
  **                                                            **
  **                     Prototypes Main                        **
