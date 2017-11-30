@@ -303,17 +303,18 @@ void removePoint(coord_t x, coord_t y) {
 
 void reset() {
     string TAG = "RESET";
-    cout << "\n" << TAG << ": Start" << endl;
+    logger->info("{0}: Start",TAG);
 
     pointList.clear(); //clear point list
     trX = trY = 0;//reset position
     scale = DEFAULT_SCALE;//reset scale
+    glutReshapeWindow(DEFAULT_SCREEN_WIDTH,DEFAULT_SCREEN_HEIGHT);
 
     resetDisplay();
 
     glutPostRedisplay();
 
-    cout << "\n" << TAG << ": End" << endl;
+    logger->info("{0}: End",TAG);
 }
 
 int chooseAlgorithm() {
