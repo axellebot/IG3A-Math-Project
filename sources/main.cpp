@@ -5,6 +5,7 @@
 
 
 #include "main.h"
+#include "tools.cpp"
 
 using namespace std;
 
@@ -63,6 +64,19 @@ void drawSegment(Point p1, Point p2, double red, double green, double blue, doub
     glVertex2f(p2.x, p2.y); // coordonnees du dernier point
     glEnd(); // fin de glBegin
 }
+/**
+ *
+ * @param point
+ * @param txt
+ */
+void drawTextOnPoint(Point p,string txt){
+    logger->info("Drawing {0}",txt);
+    glColor3f(250.0,0.0,0.0);
+    glRasterPos2i(p.x,p.y);
+    for(int i =0;i<txt.length();i++){
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24,txt[i]);
+    }
+}
 
 /****************************************************************
  **                                                            **
@@ -87,6 +101,7 @@ void display() {
 
     //LAYERS
     //top
+    glCallList(MMP_LAYER_INDEX_DRAW_TEXT);
     glCallList(MMP_LAYER_INDEX_DRAW_POINT);
     glCallList(MMP_LAYER_INDEX_DRAW_SEGMENT);
     glCallList(MMP_LAYER_INDEX_LANDMARK_POINTS);
@@ -261,6 +276,12 @@ void resetLandmarkDisplay() {
 }
 
 void resetPointsDisplay() {
+    glNewList(MMP_LAYER_INDEX_DRAW_TEXT, GL_COMPILE_AND_EXECUTE); //List for points text
+    for (Point p : pointList) {
+        drawTextOnPoint(p, "("+to_string_with_precision(p.x,2)+ ";" + to_string_with_precision(p.y,2)+ ")");
+    }
+    glEndList();
+
     glNewList(MMP_LAYER_INDEX_DRAW_POINT, GL_COMPILE_AND_EXECUTE); //List for points
     for (Point p : pointList) {
         drawPoint(p, 0, 0, 0, SIZE_POINT);
@@ -328,18 +349,6 @@ void reset() {
     glutPostRedisplay();
 
     logger->info("{0}: End",TAG);
-}
-
-int chooseAlgorithm() {
-    int choix_tmp = 1;
-
-    cout << "Choose Algorithms :\n";
-    cout << "1 -> MonotonChain\n";
-    cout << "answer : ";
-    scanf("%d", &choix_tmp);
-    currentAlgo = (Algorithm) choix_tmp;
-
-    if (currentAlgo < 0) exit(-1);
 }
 
 void zoomIn() {
@@ -491,7 +500,7 @@ void initWindow() {
 }
 
 int main(int argc, char **argv) {
-    /* initialisation de glut et creation de la fenetre */
+        /* initialisation de glut et creation de la fenetre */
     glutInit(&argc, argv);
 
     initLogger();// init logger

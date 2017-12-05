@@ -39,6 +39,7 @@ const spdlog::level::level_enum LOGGER_LEVEL = spdlog::level::debug;
 #define MMP_LAYER_INDEX_LANDMARK_POINTS 2
 #define MMP_LAYER_INDEX_DRAW_SEGMENT 3
 #define MMP_LAYER_INDEX_DRAW_POINT 4
+#define MMP_LAYER_INDEX_DRAW_TEXT 5
 
 //Screen config
 const int DEFAULT_SCREEN_WIDTH = 1000;
@@ -89,6 +90,8 @@ void drawPoint(Point p, double r0, double g0, double b0, double size);
 
 void drawSegment(Point p1, Point p2, double red, double green, double blue, double size);
 
+void drawTextOnPoint(Point p, string txt);
+
 /****************************************************************
  **                                                            **
  **                  OpenGL overloading                        **
@@ -129,8 +132,6 @@ void resetSegmentsDisplay();
 void addPoint(coord_t x, coord_t y);
 
 void removePoint(coord_t x, coord_t y);
-
-int chooseAlgorithm();
 
 void reset();
 
