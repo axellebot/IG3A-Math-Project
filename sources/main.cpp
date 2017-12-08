@@ -40,6 +40,9 @@ int getHeight() {
  * @param size  Size
  */
 void drawPoint(Point p, double r0, double g0, double b0, double size) {
+    const string TAG = "DRAW_POINT";
+    logger->debug("{0}",TAG);
+
     glColor3f(r0, g0, b0);    //initialisation de la couleur
     glPointSize(size);    // initialisation de la taille
     glBegin(GL_POINTS);    // on trace un point
@@ -57,6 +60,9 @@ void drawPoint(Point p, double r0, double g0, double b0, double size) {
  * @param size
  */
 void drawSegment(Point p1, Point p2, double red, double green, double blue, double size) {
+    const string TAG = "DRAW_SEGMENT";
+    logger->debug("{0}",TAG);
+
     glColor3f(red, green, blue);//initialisation de la couleur
     glLineWidth(size); // initialisation de la taille
     glBegin(GL_LINES); // on trace un segment
@@ -64,17 +70,19 @@ void drawSegment(Point p1, Point p2, double red, double green, double blue, doub
     glVertex2f(p2.x, p2.y); // coordonnees du dernier point
     glEnd(); // fin de glBegin
 }
+
 /**
  *
  * @param point
  * @param txt
  */
-void drawTextOnPoint(Point p,string txt){
-    logger->info("Drawing {0}",txt);
-    glColor3f(250.0,0.0,0.0);
-    glRasterPos2i(p.x,p.y);
-    for(int i =0;i<txt.length();i++){
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24,txt[i]);
+void drawTextOnPoint(Point p, string txt) {
+    const string TAG = "DRAW_TXT_ON_POINT";
+    logger->info("{0} on point : {1}",TAG, txt);
+    glColor3f(250.0, 0.0, 0.0);
+    glRasterPos2i(p.x, p.y);
+    for (int i = 0; i < txt.length(); i++) {
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, txt[i]);
     }
 }
 
@@ -120,7 +128,7 @@ void display() {
  */
 void keyboardInput(unsigned char key, int x, int y) {
     const string TAG = "KEYBOARD_INPUT";
-    logger->debug("{0}: key->{1}, x->{2}, y->{3}",TAG,key,x,y);
+    logger->debug("{0}: key->{1}, x->{2}, y->{3}", TAG, key, x, y);
 
     switch (key) {
         case 'q' : /*la key 'q' permet de quitter le programme */
@@ -149,7 +157,7 @@ void keyboardInput(unsigned char key, int x, int y) {
  */
 void special(int key, int x, int y) {
     const string TAG = "SPECIAL_INPUT";
-    logger->debug("{0}: key->{1}, x->{2}, y->{3}",TAG,key,x,y);
+    logger->debug("{0}: key->{1}, x->{2}, y->{3}", TAG, key, x, y);
 
     switch (key) {
         case GLUT_KEY_UP:
@@ -197,7 +205,7 @@ void reshape(int width, int height) {
  */
 void mouseInput(int button, int state, int x, int y) {
     const string TAG = "MOUSE_INPUT";
-    logger->debug("{0}: button->{1}, state->{2}, x->{3},y->{4}",TAG,button,state,x,y);
+    logger->debug("{0}: button->{1}, state->{2}, x->{3},y->{4}", TAG, button, state, x, y);
     /* si on appuie sur le bouton gauche */
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         leftClicked = true;
@@ -215,10 +223,10 @@ void mouseInput(int button, int state, int x, int y) {
         removePoint(x, y);
     }
 
-    if(button == 3 && state == GLUT_DOWN){
+    if (button == 3 && state == GLUT_DOWN) {
         zoomOut();
     }
-    if(button == 4 && state == GLUT_DOWN){
+    if (button == 4 && state == GLUT_DOWN) {
         zoomIn();
     }
 
@@ -250,13 +258,13 @@ void mouseMotion(int x, int y) {
  ****************************************************************/
 void resetDisplay() {
     const string TAG = "RESET_DISPLAY";
-    logger->info("{0}: START",TAG);
+    logger->info("{0}: START", TAG);
 
     resetLandmarkDisplay();
     resetPointsDisplay();
-    resetSegmentsDisplay();
+    resetHullSegmentsDisplay();
 
-    logger->info("{0}: END",TAG);
+    logger->info("{0}: END", TAG);
 }
 
 void resetLandmarkDisplay() {
@@ -276,26 +284,27 @@ void resetLandmarkDisplay() {
 }
 
 void resetPointsDisplay() {
+    vector<Point> displayedPoint = (togglePointDisplay) ? pointList : hullPointList;
+
     glNewList(MMP_LAYER_INDEX_DRAW_TEXT, GL_COMPILE_AND_EXECUTE); //List for points text
-    for (Point p : pointList) {
-        drawTextOnPoint(p, "("+to_string_with_precision(p.x,2)+ ";" + to_string_with_precision(p.y,2)+ ")");
+    for (Point p : displayedPoint) {
+        drawTextOnPoint(p, "(" + to_string_with_precision(p.x, 2) + ";" + to_string_with_precision(p.y, 2) + ")");
     }
     glEndList();
 
     glNewList(MMP_LAYER_INDEX_DRAW_POINT, GL_COMPILE_AND_EXECUTE); //List for points
-    for (Point p : pointList) {
+    for (Point p : displayedPoint) {
         drawPoint(p, 0, 0, 0, SIZE_POINT);
     }
     glEndList();
     glutPostRedisplay();
 }
 
-void resetSegmentsDisplay() {
+void resetHullSegmentsDisplay() {
     glNewList(MMP_LAYER_INDEX_DRAW_SEGMENT, GL_COMPILE_AND_EXECUTE); //List for segments
 
     //check if list is filled
-    if (pointList.size() > 0) {
-        vector<Point> hullPointList = getHullPoints();
+    if (hullPointList.size() > 0) {
         for (int i = 0; i < hullPointList.size() - 1; i++) {
             drawSegment(hullPointList.at(i), hullPointList.at(i + 1), 0, 0, 0, SIZE_SEGMENT);
         }
@@ -304,7 +313,7 @@ void resetSegmentsDisplay() {
     glEndList();
 }
 
-/****************************************************************
+/****************************************************************n
  **                                                            **
  **                           Actions                          **
  **                                                            **
@@ -313,17 +322,16 @@ void addPoint(coord_t x, coord_t y) {
     const string TAG = "ADD_POINT";
     Point p = convertPointLocation(x, y);
     pointList.push_back(p);
-    logger->info("{0}: Point added : x->{1}, y->{2}",TAG,p.x,p.y);
-    resetPointsDisplay();
-    resetSegmentsDisplay();
+    logger->info("{0}: Point added : x->{1}, y->{2}", TAG, p.x, p.y);
+    applyPointEdition();
 }
 
 void removePoint(coord_t x, coord_t y) {
     const string TAG = "REMOVE_POINT";
-    logger->info("{0}: Remove point at {1};{2} ",TAG,x,y);
+    logger->info("{0}: Remove point at {1};{2} ", TAG, x, y);
 
     Point pToDelete = convertPointLocation(x, y);
-    cout << "Removed point at : " << pToDelete.x << " and "<<pToDelete.y<<endl;
+    cout << "Removed point at : " << pToDelete.x << " and " << pToDelete.y << endl;
     float threshold = DEFAULT_DELETE_THRESHOLD;
     for (int i = 0; i < pointList.size(); i++) {
         if ((pToDelete.x - threshold < pointList[i].x && pointList[i].x < pToDelete.x + threshold)
@@ -331,30 +339,30 @@ void removePoint(coord_t x, coord_t y) {
             pointList.erase(pointList.begin() + i);
         }
     }
-    resetPointsDisplay();
-    resetSegmentsDisplay();
+    applyPointEdition();
 }
 
 void reset() {
     string TAG = "RESET";
-    logger->info("{0}: Start",TAG);
+    logger->info("{0}: Start", TAG);
 
     pointList.clear(); //clear point list
+    hullPointList.clear(); //clear hull point list
     trX = trY = 0;//reset position
     scale = DEFAULT_SCALE;//reset scale
-    glutReshapeWindow(DEFAULT_SCREEN_WIDTH,DEFAULT_SCREEN_HEIGHT);
+    glutReshapeWindow(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
 
     resetDisplay();
 
     glutPostRedisplay();
 
-    logger->info("{0}: End",TAG);
+    logger->info("{0}: End", TAG);
 }
 
 void zoomIn() {
     string TAG = "ZOOM_IN";
     scale += GAP_ZOOMING;
-    logger->info("{0}: Zoom Int",TAG,scale);
+    logger->info("{0}: Zoom Int", TAG, scale);
     glutPostRedisplay();
 }
 
@@ -362,7 +370,7 @@ void zoomOut() {
     if (scale - GAP_ZOOMING > 1) {
         string TAG = "ZOOM_OUT";
         scale -= GAP_ZOOMING;
-        logger->info("{0}: Zoom Int",TAG,scale);
+        logger->info("{0}: Zoom Int", TAG, scale);
         glutPostRedisplay();
     }
 }
@@ -380,8 +388,8 @@ void rotate(int x, int y) {
 }
 
 Point convertPointLocation(double x, double y) {
-    const string TAG ="CONVERT_POINT_LOCATION";
-    double oldX=x,oldY=y;
+    const string TAG = "CONVERT_POINT_LOCATION";
+    double oldX = x, oldY = y;
 
     x = x - getWidth() / 2 - trX;
     y = y - getHeight() / 2 + trY;
@@ -395,41 +403,56 @@ Point convertPointLocation(double x, double y) {
     p.x = x;
     p.y = y;
 
-    logger->debug("{0}: Convert location x:{1}->{2}, y:{3}->{4}",TAG,oldX,p.x,oldY,p.y);
+    logger->debug("{0}: Convert location x:{1}->{2}, y:{3}->{4}", TAG, oldX, p.x, oldY, p.y);
 
     return p;
 }
 
-vector<Point> getHullPoints(){
+vector<Point> getHullPoints() {
     const string TAG = "GET_HULL_POINTS";
     vector<Point> hullPointList;
 
-    auto start =  std::chrono::system_clock::now();
+    if (pointList.size() > 0) {
+        auto start = std::chrono::system_clock::now();
 
-    switch (currentAlgo) {
-        case MonotoneChain:
-            hullPointList = Algorithms::MonotoneChain::convexHull(pointList);
-            break;
-        default :
-            hullPointList = {};
+        switch (currentAlgo) {
+            case MonotoneChain:
+                hullPointList = Algorithms::MonotoneChain::convexHull(pointList);
+                break;
+            default :
+                hullPointList = {};
+        }
+
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+        logger->info("{0}:counter {1} secondes", TAG, elapsed_seconds.count());
+    }else{
+        logger->warn("{0} No point to use",TAG);
     }
 
-    auto end =  std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end-start;
-
-    logger->info("{0}:counter {1} secondes",TAG,elapsed_seconds.count());
 
     return hullPointList;
 }
 
-void deleteLastPoint(){
+void deleteLastPoint() {
     const string TAG = "GET_HULL_POINTS";
-    logger->info("{0}:Delete last point",TAG);
+    logger->info("{0}:Delete last point", TAG);
 
-    if(pointList.size()>0) pointList.pop_back();
+    if (pointList.size() > 0) pointList.pop_back();
 
+    applyPointEdition();
+}
+
+void applyPointEdition() {
+    hullPointList = getHullPoints();
     resetPointsDisplay();
-    resetSegmentsDisplay();
+    resetHullSegmentsDisplay();
+}
+
+void applyAlgorithmEdition(){
+    hullPointList = getHullPoints();
+    resetHullSegmentsDisplay();
+    glutPostRedisplay();
 }
 
 /****************************************************************
@@ -438,17 +461,22 @@ void deleteLastPoint(){
  **                                                            **
  ****************************************************************/
 void menuAlgoTrigger(int value) {
-    logger->info("Algo Menu Triggered :",value);
+    logger->info("Algo Menu Triggered : {0}", value);
     currentAlgo = (Algorithm) value;
-    glutPostRedisplay();
+    applyAlgorithmEdition();
 }
 
 void menuMainTrigger(int value) {
-    logger->info("Main Menu Triggered :",value);
-    glutPostRedisplay();
+    logger->info("Main Menu Triggered :", value);
+    switch (value) {
+        case 0:
+            togglePointDisplay = !togglePointDisplay;
+            resetPointsDisplay();
+            break;
+    }
 }
 
-void initLogger(){
+void initLogger() {
     logger->set_level(LOGGER_LEVEL); // Set specific logger's log level
 }
 
@@ -456,10 +484,11 @@ void initMenu() {
     // 1st Sub Menu
     int idMenuAlgo = glutCreateMenu(menuAlgoTrigger);
     // Add sub menu entry
-    glutAddMenuEntry("Monotone Chain",MonotoneChain);
+    glutAddMenuEntry("Monotone Chain", MonotoneChain);
 
     // Create an entry
     glutCreateMenu(menuMainTrigger);
+    glutAddMenuEntry("Toggle display", 0);
     glutAddSubMenu("Choose algorithm", idMenuAlgo);
 
     // Let the menu respond on the right mouse button
@@ -500,7 +529,7 @@ void initWindow() {
 }
 
 int main(int argc, char **argv) {
-        /* initialisation de glut et creation de la fenetre */
+    /* initialisation de glut et creation de la fenetre */
     glutInit(&argc, argv);
 
     initLogger();// init logger

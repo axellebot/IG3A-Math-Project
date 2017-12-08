@@ -32,7 +32,7 @@
 #define MMP_AUTHORS "Axel LE BOT | Andrew LENC"
 
 //Level of logger
-const spdlog::level::level_enum LOGGER_LEVEL = spdlog::level::debug;
+const spdlog::level::level_enum LOGGER_LEVEL = spdlog::level::info;
 
 //LAYERS
 #define MMP_LAYER_INDEX_LANDMARK_SEGMENT 1
@@ -75,8 +75,11 @@ int mouseMiddleXOld, mouseMiddleYOld;
 double trX = 0.0, trY = 0.0, trZ = 0.0;
 //current algorithm
 Algorithm currentAlgo = MonotoneChain;
+//Toggle point list display
+bool togglePointDisplay = false;
 //list of current points displayed
 vector<Point> pointList;
+vector<Point> hullPointList;
 
 //Console logger(with color support)
 auto logger = spdlog::stdout_logger_mt("logger",true);
@@ -122,7 +125,7 @@ void resetLandmarkDisplay();
 
 void resetPointsDisplay();
 
-void resetSegmentsDisplay();
+void resetHullSegmentsDisplay();
 
 /****************************************************************
  **                                                            **
@@ -146,6 +149,10 @@ Point convertPointLocation(double x, double y);
 vector<Point> getHullPoints();
 
 void deleteLastPoint();
+
+void applyPointEdition();
+
+void applyAlgorithmEdition();
 
 /****************************************************************
  **                                                            **
