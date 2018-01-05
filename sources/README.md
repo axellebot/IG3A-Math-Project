@@ -2,28 +2,30 @@
 ## Introduction
 
 ## Instalation
+
 - Install openGL:
-```
-apt-get install freeglut3-dev
+```bash
+apt install freeglut3-dev
 ```
 
 - Install JPEG :
-```
-apt-get install libjpeg-dev
+```bash
+apt install libjpeg-dev
 ```
 
 - Install LXmu :
-```
-apt-get install libxmu-dev libxmu-headers
+```bash
+apt install libxmu-dev libxmu-headers
 ```
 
 - Install LXi :
+```bash
+apt install libxi-dev
 ```
-apt-get install libxi-dev
-```
+
 - Install Logger :
-```
-apt-get install libspdlog-dev
+```bash
+apt install libspdlog-dev
 ```
 
 ## NB
