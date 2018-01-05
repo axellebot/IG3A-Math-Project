@@ -11,7 +11,7 @@
 #include <chrono>
 #include <vector>
 #include <GL/glut.h>// Inclusion des fichiers d'en-tete Glut
-#include <spdlog/spdlog.h> // Logger
+//#include <spdlog/spdlog.h> // Logger
 
 #include "Point.h"
 #include "Algorithm.h"
