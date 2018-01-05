@@ -32,13 +32,14 @@
 #define MMP_AUTHORS "Axel LE BOT | Andrew LENC"
 
 //Level of logger
-const spdlog::level::level_enum LOGGER_LEVEL = spdlog::level::debug;
+const spdlog::level::level_enum LOGGER_LEVEL = spdlog::level::info;
 
 //LAYERS
 #define MMP_LAYER_INDEX_LANDMARK_SEGMENT 1
 #define MMP_LAYER_INDEX_LANDMARK_POINTS 2
 #define MMP_LAYER_INDEX_DRAW_SEGMENT 3
 #define MMP_LAYER_INDEX_DRAW_POINT 4
+#define MMP_LAYER_INDEX_DRAW_TEXT 5
 
 //Screen config
 const int DEFAULT_SCREEN_WIDTH = 1000;
@@ -74,8 +75,11 @@ int mouseMiddleXOld, mouseMiddleYOld;
 double trX = 0.0, trY = 0.0, trZ = 0.0;
 //current algorithm
 Algorithm currentAlgo = MonotoneChain;
+//Toggle point list display
+bool togglePointDisplay = false;
 //list of current points displayed
 vector<Point> pointList;
+vector<Point> hullPointList;
 
 //Console logger(with color support)
 auto logger = spdlog::stdout_logger_mt("logger",true);
@@ -88,6 +92,8 @@ auto logger = spdlog::stdout_logger_mt("logger",true);
 void drawPoint(Point p, double r0, double g0, double b0, double size);
 
 void drawSegment(Point p1, Point p2, double red, double green, double blue, double size);
+
+void drawTextOnPoint(Point p, string txt);
 
 /****************************************************************
  **                                                            **
@@ -119,7 +125,7 @@ void resetLandmarkDisplay();
 
 void resetPointsDisplay();
 
-void resetSegmentsDisplay();
+void resetHullSegmentsDisplay();
 
 /****************************************************************
  **                                                            **
@@ -129,8 +135,6 @@ void resetSegmentsDisplay();
 void addPoint(coord_t x, coord_t y);
 
 void removePoint(coord_t x, coord_t y);
-
-int chooseAlgorithm();
 
 void reset();
 
@@ -143,6 +147,12 @@ void rotate(int x, int y);
 Point convertPointLocation(double x, double y);
 
 vector<Point> getHullPoints();
+
+void deleteLastPoint();
+
+void applyPointEdition();
+
+void applyAlgorithmEdition();
 
 /****************************************************************
  **                                                            **

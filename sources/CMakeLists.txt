@@ -16,7 +16,7 @@ set(SOURCE_FILES
         Point.h
         Algorithm.cpp
         Algorithm.h
-        )
+        tools.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY})
