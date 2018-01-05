@@ -32,7 +32,7 @@
 #define MMP_AUTHORS "Axel LE BOT | Andrew LENC"
 
 //Level of logger
-const spdlog::level::level_enum LOGGER_LEVEL = spdlog::level::info;
+//const spdlog::level::level_enum LOGGER_LEVEL = spdlog::level::info;
 
 //LAYERS
 #define MMP_LAYER_INDEX_LANDMARK_SEGMENT 1
@@ -82,7 +82,7 @@ vector<Point> pointList;
 vector<Point> hullPointList;
 
 //Console logger(with color support)
-auto logger = spdlog::stdout_logger_mt("logger", true);
+//auto logger = spdlog::stdout_logger_mt("logger",true);
 
 /****************************************************************
  **                                                            **
