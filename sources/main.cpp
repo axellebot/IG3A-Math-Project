@@ -3,7 +3,6 @@
 //
 
 
-
 #include "main.h"
 #include "tools.cpp"
 
@@ -41,7 +40,7 @@ int getHeight() {
  */
 void drawPoint(Point p, double r0, double g0, double b0, double size) {
     const string TAG = "DRAW_POINT";
-    logger->debug("{0}",TAG);
+    logger->debug("{0}", TAG);
 
     glColor3f(r0, g0, b0);    //initialisation de la couleur
     glPointSize(size);    // initialisation de la taille
@@ -61,7 +60,7 @@ void drawPoint(Point p, double r0, double g0, double b0, double size) {
  */
 void drawSegment(Point p1, Point p2, double red, double green, double blue, double size) {
     const string TAG = "DRAW_SEGMENT";
-    logger->debug("{0}",TAG);
+    logger->debug("{0}", TAG);
 
     glColor3f(red, green, blue);//initialisation de la couleur
     glLineWidth(size); // initialisation de la taille
@@ -78,7 +77,7 @@ void drawSegment(Point p1, Point p2, double red, double green, double blue, doub
  */
 void drawTextOnPoint(Point p, string txt) {
     const string TAG = "DRAW_TXT_ON_POINT";
-    logger->info("{0} on point : {1}",TAG, txt);
+    logger->info("{0} on point : {1}", TAG, txt);
     glColor3f(250.0, 0.0, 0.0);
     glRasterPos2i(p.x, p.y);
     for (int i = 0; i < txt.length(); i++) {
@@ -212,7 +211,8 @@ void mouseInput(int button, int state, int x, int y) {
         mouseLeftXOld = x; /* saved right click position */
         mouseLeftYOld = y;
 
-        addPoint(x, y);
+        Point p = convertPointLocation(x, y);
+        addPoint(p);
     }
     /* si on appuie sur le bouton droit */
     if (button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN) {
@@ -220,7 +220,8 @@ void mouseInput(int button, int state, int x, int y) {
         mouseMiddleXOld = x; /* saved right click position */
         mouseMiddleYOld = y;
 
-        removePoint(x, y);
+        Point pToDelete = convertPointLocation(x, y);
+        removePoint(pToDelete.x, pToDelete.y);
     }
 
     if (button == 3 && state == GLUT_DOWN) {
@@ -318,9 +319,21 @@ void resetHullSegmentsDisplay() {
  **                           Actions                          **
  **                                                            **
  ****************************************************************/
+void addPoint(Point p) {
+    const string TAG = "ADD_POINT";
+
+    pointList.push_back(p);
+    logger->info("{0}: Point added : x->{1}, y->{2}", TAG, p.x, p.y);
+    applyPointEdition();
+}
+
 void addPoint(coord_t x, coord_t y) {
     const string TAG = "ADD_POINT";
-    Point p = convertPointLocation(x, y);
+
+    Point p;
+    p.x = x;
+    p.y = y;
+
     pointList.push_back(p);
     logger->info("{0}: Point added : x->{1}, y->{2}", TAG, p.x, p.y);
     applyPointEdition();
@@ -330,12 +343,11 @@ void removePoint(coord_t x, coord_t y) {
     const string TAG = "REMOVE_POINT";
     logger->info("{0}: Remove point at {1};{2} ", TAG, x, y);
 
-    Point pToDelete = convertPointLocation(x, y);
-    cout << "Removed point at : " << pToDelete.x << " and " << pToDelete.y << endl;
+    cout << "Removed point at : " << x << " and " << y << endl;
     float threshold = DEFAULT_DELETE_THRESHOLD;
     for (int i = 0; i < pointList.size(); i++) {
-        if ((pToDelete.x - threshold < pointList[i].x && pointList[i].x < pToDelete.x + threshold)
-            && (pToDelete.y - threshold < pointList[i].y && pointList[i].y < pToDelete.y + threshold)) {
+        if ((x - threshold < pointList[i].x && pointList[i].x < x + threshold)
+            && (y - threshold < pointList[i].y && pointList[i].y < y + threshold)) {
             pointList.erase(pointList.begin() + i);
         }
     }
@@ -374,7 +386,6 @@ void zoomOut() {
         glutPostRedisplay();
     }
 }
-
 
 void rotate(int x, int y) {
     if (FREE_Z_ROTATION) {
@@ -426,8 +437,8 @@ vector<Point> getHullPoints() {
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
         logger->info("{0}:counter {1} secondes", TAG, elapsed_seconds.count());
-    }else{
-        logger->warn("{0} No point to use",TAG);
+    } else {
+        logger->warn("{0} No point to use", TAG);
     }
 
 
@@ -449,25 +460,50 @@ void applyPointEdition() {
     resetHullSegmentsDisplay();
 }
 
-void applyAlgorithmEdition(){
+void applyAlgorithmEdition() {
     hullPointList = getHullPoints();
     resetHullSegmentsDisplay();
     glutPostRedisplay();
 }
 
+void consoleInput() {
+    int count = 0;
+    cout << "Console Input : \n";
+    cout << "How many points you wanna add ?\n";
+    cin >> count;
+    for (int i = 0; i < count; i++) {
+        printf("Point number %d\n", i + 1);
+        double x, y;
+        printf("%d -> X : ", i + 1);
+        cin >> x;
+        printf("%d -> Y : ", i + 1);
+        cin >> y;
+        addPoint(x, y);
+    }
+}
+
 /****************************************************************
  **                                                            **
- **                            Main                            **
+ **                            Menu                            **
  **                                                            **
  ****************************************************************/
-void menuAlgoTrigger(int value) {
-    logger->info("Algo Menu Triggered : {0}", value);
-    currentAlgo = (Algorithm) value;
-    applyAlgorithmEdition();
-}
+
 
 void menuMainTrigger(int value) {
     logger->info("Main Menu Triggered :", value);
+}
+
+void menuActionTrigger(int value) {
+    logger->info("Action Menu Triggered : {0}", value);
+    switch (value) {
+        case 0:
+            consoleInput();
+            break;
+    }
+}
+
+void menuDisplayTrigger(int value) {
+    logger->info("Display Menu Triggered : {0}", value);
     switch (value) {
         case 0:
             togglePointDisplay = !togglePointDisplay;
@@ -476,23 +512,43 @@ void menuMainTrigger(int value) {
     }
 }
 
-void initLogger() {
-    logger->set_level(LOGGER_LEVEL); // Set specific logger's log level
+void menuAlgoTrigger(int value) {
+    logger->info("Algo Menu Triggered : {0}", value);
+    currentAlgo = (Algorithm) value;
+    applyAlgorithmEdition();
 }
 
+
 void initMenu() {
-    // 1st Sub Menu
-    int idMenuAlgo = glutCreateMenu(menuAlgoTrigger);
-    // Add sub menu entry
+    // Action Sub Menu
+    int actionMenu = glutCreateMenu(menuActionTrigger);
+    glutAddMenuEntry("Add points through console", 0);
+
+    // Display Sub Menu
+    int displayMenu = glutCreateMenu(menuDisplayTrigger);
+    glutAddMenuEntry("Toggle display", 0);
+
+    // Algo Sub Menu
+    int algoMenu = glutCreateMenu(menuAlgoTrigger);
     glutAddMenuEntry("Monotone Chain", MonotoneChain);
 
     // Create an entry
     glutCreateMenu(menuMainTrigger);
-    glutAddMenuEntry("Toggle display", 0);
-    glutAddSubMenu("Choose algorithm", idMenuAlgo);
+    glutAddSubMenu("Action", actionMenu);
+    glutAddSubMenu("Display", displayMenu);
+    glutAddSubMenu("Algorithms", algoMenu);
 
     // Let the menu respond on the right mouse button
     glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
+/****************************************************************
+ **                                                            **
+ **                            Main                            **
+ **                                                            **
+ ****************************************************************/
+void initLogger() {
+    logger->set_level(LOGGER_LEVEL); // Set specific logger's log level
 }
 
 void initWindow() {
