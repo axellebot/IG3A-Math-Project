@@ -50,7 +50,7 @@ const float SIZE_LANDMARK_POINT = 10;
 const float SIZE_POINT = 15;
 const float SIZE_LANDMARK_SEGMENT = 2.0;
 const float SIZE_SEGMENT = 4.0;
-const float DEFAULT_SCALE=30;
+const float DEFAULT_SCALE = 30;
 const float DEFAULT_DELETE_THRESHOLD = 0.5; //Thxreshold to delete point
 
 //Moving Behaviors
@@ -68,7 +68,7 @@ double scale = DEFAULT_SCALE;
 //rotation and position on windows axes
 int anglex, angley;
 //mouse behaviors
-bool leftClicked = false,middleClicked=false;
+bool leftClicked = false, middleClicked = false;
 int mouseLeftXOld, mouseLeftYOld;
 int mouseMiddleXOld, mouseMiddleYOld;
 //tranlation on windows axes
@@ -82,7 +82,7 @@ vector<Point> pointList;
 vector<Point> hullPointList;
 
 //Console logger(with color support)
-auto logger = spdlog::stdout_logger_mt("logger",true);
+auto logger = spdlog::stdout_logger_mt("logger", true);
 
 /****************************************************************
  **                                                            **
@@ -132,6 +132,8 @@ void resetHullSegmentsDisplay();
  **                     Prototypes Action                      **
  **                                                            **
  ****************************************************************/
+void addPoint(Point p);
+
 void addPoint(coord_t x, coord_t y);
 
 void removePoint(coord_t x, coord_t y);
@@ -154,13 +156,31 @@ void applyPointEdition();
 
 void applyAlgorithmEdition();
 
+void consoleInput();
+
+
+/****************************************************************
+ **                                                            **
+ **                            Menu                            **
+ **                                                            **
+ ****************************************************************/
+void menuMainTrigger(int value);
+
+void menuActionTrigger(int value);
+
+void menuDisplayTrigger(int value);
+
+void menuAlgoTrigger(int value);
+
+void initMenu();
+
 /****************************************************************
  **                                                            **
  **                     Prototypes Main                        **
  **                                                            **
  ****************************************************************/
 void initLogger();
-void initMenu();
+
 void initWindow();
 
 #endif //MINIPROJETMATH_MAIN_H
